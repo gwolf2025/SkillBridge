@@ -1,0 +1,22 @@
+{
+  "name": "@skillbridge/conversion",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Orchestration of the complete conversion pipeline through SkillBridge IR",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

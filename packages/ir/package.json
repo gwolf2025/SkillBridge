@@ -1,0 +1,22 @@
+{
+  "name": "@skillbridge/ir",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vendor-neutral SkillBridge Intermediate Representation for AI-agent skills",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

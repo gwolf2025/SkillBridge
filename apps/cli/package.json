@@ -1,0 +1,26 @@
+{
+  "name": "@skillbridge/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SkillBridge command-line application",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "skillbridge": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.0"
+  }
+}
