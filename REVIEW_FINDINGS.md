@@ -3,30 +3,6 @@
 **Review Date:**
 **Reviewer:**
 **Task Title:**
-**Diff Inspected:**
-
----
-
-## Findings
-
-_List findings ordered by severity (CRITICAL > HIGH > MEDIUM > LOW)._
-
-### CRITICAL
-
-### HIGH
-
-### MEDIUM
-
-### LOW
-
----
-
-## Summary
-
-**Approved:** No
-**Repair Required:** No
-**Needs Human Decision:** No
-**Total Findings:** 0
 
 ---
 

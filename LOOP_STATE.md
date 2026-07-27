@@ -1,11 +1,11 @@
 # Loop State
 
 **Current State:** UNPLANNED
-**Active Task:** None
+**Active Task:**
 **Repair Cycle:** 0
-**Last Verification:** None
-**Verification Result:** None
-**Last Command:** None
+**Last Verification:**
+**Verification Result:**
+**Last Command:** /sb-complete
 
 ---
 

@@ -1,13 +1,51 @@
 # Tasks
 
-## Current Sprint — Repository Foundation
+## Completed
 
-- [x] Create directory structure
-- [x] Create root configuration files
-- [x] Create root documentation and licenses
-- [x] Create workspace packages
-- [x] Create adapter packages
-- [x] Create CLI application scaffold
-- [x] Install dependencies and verify
-- [ ] Implement core domain primitives (next)
-- [ ] Implement SkillBridge IR types (next)
+- [x] **documentation**: Define SkillBridge 0.1.0-alpha product specification (SPECIFICATION.md), rewrite implementation backlog (TASKS.md), update ROADMAP.md
+
+## Current Sprint — Core Foundations
+
+- [ ] **core**: Add `DiagnosticCollector` utility and `ValidationError` type
+- [ ] **schema**: Define `SkillSchema` type, version resolver, field-level validation
+- [ ] **ir**: Add `NormalizedSkill`, `ResolvedIR`, `CompiledIR` types; validation functions; version migration
+- [ ] **parser**: Implement SKILL.md frontmatter parser, markdown body parser, package-boundary detection, resource discovery; all with `Diagnostic` output
+
+## Backlog — Core Abstractions
+
+- [ ] **compatibility**: Define `CapabilityMap`, `compareCapabilities()`, `CompatibilityReport`, `assessSecurityImpact()`
+- [ ] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
+- [ ] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
+- [ ] **adapter-sdk**: Extend `Adapter` with `install()`/`verify()`; add `AdapterRegistry`, `ConversionContext`, `AdapterError` types
+- [ ] **registry-local**: Implement package cache directory structure, local install, listing, metadata queries
+- [ ] **testing**: Implement sample SKILL.md fixtures, `createMockAdapter()`, `assertRoundTrip()`, contract test suite
+
+## Backlog — Initial Adapters
+
+- [ ] **adapter/portable**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
+- [ ] **adapter/opencode**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
+- [ ] **adapter/claude**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
+- [ ] **adapter/codex**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
+
+## Backlog — CLI and Integration
+
+- [ ] **cli**: Implement `skillbridge convert` subcommand
+- [ ] **cli**: Implement `skillbridge list-adapters` subcommand
+- [ ] **cli**: Replace stub `main()` with real command dispatch
+- [ ] **integration**: Write cross-package integration tests for full pipeline flows
+- [ ] **roundtrip**: Write round-trip conversion tests for each adapter pair
+- [ ] **conversion**: Write pipeline conversion tests for end-to-end scenarios
+
+## Backlog — Testing and Quality
+
+- [ ] **testing**: Replace all placeholder test suites with meaningful tests
+- [ ] **testing**: Write adapter contract tests — each adapter must pass the same contract suite
+- [ ] **fixtures**: Add fixture SKILL.md files for every source format and edge case
+
+## Future — Deferred to Post-0.1.0-alpha
+
+- [ ] **runtime**: Execution sessions, context assembly, permission gates, tool bridges
+- [ ] **runtime**: Local execution sandbox
+- [ ] **registry**: Remote registry protocol
+- [ ] **community**: Adapter plugin API for third-party adapters
+- [ ] **docs**: End-to-end tutorial and migration guides

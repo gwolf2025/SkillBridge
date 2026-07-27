@@ -1,48 +1,73 @@
 # Roadmap
 
-## Phase 0: Repository Foundation (current)
+## Phase 0: Repository Foundation (complete)
 
 - [x] Repository structure and package boundaries
 - [x] Build tooling and configuration
 - [x] Testing foundation
 - [x] CI pipeline
-- [ ] Core domain primitives
-- [ ] SkillBridge IR schema
+- [x] Core domain primitives (`Result`, `Diagnostic`, `SkillBridgeError`)
+- [x] SkillBridge IR schema types (`IRPackage`, `CapabilityRequirement`)
+- [x] Adapter SDK interfaces (`Adapter`, `AdapterManifest`)
+- [x] Documentation (architecture, specification, boundary, workflow, agents)
+- [x] Loop-engineering workflow (OpenCode agents and commands)
 
-## Phase 1: Core Abstractions
+## Phase 1: 0.1.0-alpha — MVP Pipeline
 
-- [ ] SkillBridge IR types and validation
-- [ ] Adapter SDK interfaces
-- [ ] Parser framework
-- [ ] Compatibility analysis framework
-- [ ] Compiler framework
-- [ ] Conversion pipeline orchestration
+### Core Foundations
 
-## Phase 2: Initial Adapters
+- [ ] **core**: DiagnosticCollector and ValidationError
+- [ ] **schema**: SkillSchema, version resolver, field-level validation
+- [ ] **ir**: NormalizedSkill, ResolvedIR, CompiledIR; validation; version migration
+- [ ] **parser**: SKILL.md frontmatter and body parser; resource discovery; diagnostics
+
+### Core Abstractions
+
+- [ ] **compatibility**: Capability comparison, compatibility reports, security impact
+- [ ] **compiler**: Compilation manifest, deterministic output
+- [ ] **conversion**: Pipeline orchestration, adapter selection
+- [ ] **adapter-sdk**: Full interface surface, registry, conversion context
+- [ ] **registry-local**: Local package cache
+- [ ] **testing**: Fixtures, mock helpers, contract test suite
+
+### Initial Adapters
 
 - [ ] Portable adapter
-- [ ] Claude adapter
-- [ ] Codex adapter
 - [ ] OpenCode adapter
-- [ ] CLI tool
+- [ ] Claude Code adapter
+- [ ] OpenAI Codex adapter
 
-## Phase 3: Testing and Quality
+### CLI
 
+- [ ] `skillbridge convert` subcommand
+- [ ] `skillbridge list-adapters` subcommand
+- [ ] Real command dispatch replacing pre-alpha stub
+
+### Testing and Quality
+
+- [ ] Replace all placeholder test suites
 - [ ] Adapter contract tests
 - [ ] Round-trip conversion tests
-- [ ] Deterministic output tests
-- [ ] Fixture tests
+- [ ] Pipeline conversion tests
+- [ ] Fixture coverage
 
-## Phase 4: Local Runtime
+## Phase 2: Post-0.1.0-alpha
 
-- [ ] Execution abstractions
-- [ ] Permission gates
+- [ ] Execution abstractions and permission gates
+- [ ] Local execution sandbox
 - [ ] Tool bridges
-- [ ] Local registry
-
-## Future
-
+- [ ] Remote registry protocol
 - [ ] Community adapter plugin API
-- [ ] Hosted services (separate repository)
+- [ ] End-to-end tutorials and migration guides
+
+## Future (separate repository or commercial)
+
+- [ ] Hosted private registries
+- [ ] Organisations, teams, authentication, SSO
+- [ ] Role-based access control
+- [ ] Centralised policy distribution
+- [ ] Audit logging and analytics
+- [ ] Public skill marketplace
+- [ ] Remote model execution
 
 This roadmap is provisional and subject to change.
