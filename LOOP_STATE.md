@@ -1,0 +1,30 @@
+# Loop State
+
+**Current State:** UNPLANNED
+**Active Task:** None
+**Repair Cycle:** 0
+**Last Verification:** None
+**Verification Result:** None
+**Last Command:** None
+
+---
+
+## Terminal States
+
+| State                | Meaning                                      |
+| -------------------- | -------------------------------------------- |
+| UNPLANNED            | No task loaded. Run `/sb-plan <task>`.       |
+| READY_FOR_BUILD      | Task planned. Run `/sb-build`.               |
+| READY_FOR_REVIEW     | Build complete. Run `/sb-review`.            |
+| REPAIR_REQUIRED      | Review found issues. Run `/sb-repair`.       |
+| VERIFIED             | Verification passed. Ready to complete.      |
+| VERIFICATION_FAILED  | Verification checks did not pass.            |
+| COMPLETE             | Task finished. Run `/sb-next` or `/sb-plan`. |
+| BLOCKED              | Cannot proceed. Needs human intervention.    |
+| NEEDS_HUMAN_DECISION | Requires a human to make a decision.         |
+| VERIFICATION_FAILED  | Verification checks did not pass.            |
+| SCOPE_EXHAUSTED      | Task scope fully addressed. Ready to close.  |
+
+---
+
+_Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._
