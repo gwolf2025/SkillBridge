@@ -22,7 +22,6 @@
 | COMPLETE             | Task finished. Run `/sb-next` or `/sb-plan`. |
 | BLOCKED              | Cannot proceed. Needs human intervention.    |
 | NEEDS_HUMAN_DECISION | Requires a human to make a decision.         |
-| VERIFICATION_FAILED  | Verification checks did not pass.            |
 | SCOPE_EXHAUSTED      | Task scope fully addressed. Ready to close.  |
 
 ---
