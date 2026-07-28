@@ -16,6 +16,7 @@
 ## Backlog — Core Abstractions
 
 - [x] **compatibility**: Define `CapabilityMap`, `compareCapabilities()`, `CompatibilityReport`, `assessSecurityImpact()`
+  - [x] **compatibility/reports**: Expand `CompatibilityLevel` with `partial`/`unknown`, add `SemanticDegradation`/`MissingResource`/`Assumption` types, `CompatibilityReportFormatter`, `generateCompatibilityReport()`, security integration, unknown safeguard
 - [x] **fs**: Implement safe filesystem loader with path safety, symlink protection, size/count limits, and file classification
 - [ ] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
 - [ ] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
