@@ -3,6 +3,7 @@
 ## Completed
 
 - [x] **documentation**: Define SkillBridge 0.1.0-alpha product specification (SPECIFICATION.md), rewrite implementation backlog (TASKS.md), update ROADMAP.md
+- [x] **architecture**: Implement package dependency boundary enforcement — dependency-cruiser config, 50 boundary tests, ARCHITECTURE.md allowed-import matrix, `pnpm depcheck` in verify pipeline
 
 ## Current Sprint — Core Foundations
 

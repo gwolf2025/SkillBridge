@@ -104,16 +104,52 @@ apps/cli
 ```
 
 - **core** must not import adapters or commercial modules.
-- **ir** must not import concrete adapters.
-- **parser** must not import concrete adapters.
-- **compatibility** must not import concrete adapters.
-- **compiler** must not import concrete adapters.
+- **schema** must not import adapters or commercial modules.
+- **ir** must not import concrete adapters or commercial modules.
+- **parser** must not import concrete adapters or commercial modules.
+- **compatibility** must not import concrete adapters or commercial modules.
+- **compiler** must not import concrete adapters or commercial modules.
 - **conversion** may depend on adapter-sdk interfaces but not concrete adapters.
-- Concrete adapters may depend on shared packages.
+- **runtime** must not import concrete adapters.
+- **adapter-sdk** must not import concrete adapters.
+- **registry-local** must not import concrete adapters.
+- Concrete adapters may depend on shared packages but must not import other adapters.
 - CLI may compose adapters and shared packages.
 - Open-source packages must never depend on commercial packages.
 - Adapter-specific logic must remain inside adapter packages.
 - Pairwise source-to-target conversion logic is prohibited.
+
+### Allowed Import Matrix
+
+| Importer \ Imported | core | schema | ir  | parser | compatibility | compiler | conversion | runtime | adapter-sdk | registry-local | testing | adapters | cli | commercial |
+| ------------------- | ---- | ------ | --- | ------ | ------------- | -------- | ---------- | ------- | ----------- | -------------- | ------- | -------- | --- | ---------- |
+| core                | ✓    |        |     |        |               |          |            |         |             |                |         | ✗        |     | ✗          |
+| schema              | ✓    | ✓      |     |        |               |          |            |         |             |                |         | ✗        |     | ✗          |
+| ir                  | ✓    | ✓      | ✓   |        |               |          |            |         |             |                |         | ✗        |     | ✗          |
+| parser              | ✓    | ✓      | ✓   | ✓      |               |          |            |         |             |                |         | ✗        |     | ✗          |
+| compatibility       | ✓    | ✓      | ✓   | ✓      | ✓             |          |            |         |             |                |         | ✗        |     | ✗          |
+| compiler            | ✓    | ✓      | ✓   | ✓      | ✓             | ✓        |            |         |             |                |         | ✗        |     | ✗          |
+| conversion          | ✓    | ✓      | ✓   | ✓      | ✓             | ✓        | ✓          |         | ✓           |                |         | ✗        |     | ✗          |
+| runtime             | ✓    | ✓      | ✓   |        |               |          |            | ✓       |             |                |         | ✗        |     | ✗          |
+| adapter-sdk         | ✓    | ✓      | ✓   |        |               |          |            |         | ✓           |                |         | ✗        |     | ✗          |
+| registry-local      | ✓    | ✓      | ✓   |        |               |          |            |         |             | ✓              |         | ✗        |     | ✗          |
+| testing             | ✓    |        |     |        |               |          |            |         | ✓           |                | ✓       | ✗        |     | ✗          |
+| adapters            | ✓    | ✓      | ✓   |        |               |          |            |         | ✓           |                |         | ✗        |     | ✗          |
+| cli                 | ✓    |        |     |        |               |          | ✓          |         | ✓           |                |         | ✓        | ✓   | ✗          |
+
+- ✓ = allowed import
+- ✗ = forbidden import (enforced by dependency-cruiser)
+- Blank = not expected (no current architectural reason to import)
+
+### Automated Boundary Enforcement
+
+Two layers of automated checks run during `pnpm verify`:
+
+1. **dependency-cruiser** (`pnpm depcheck`): scans all source files for import statements and validates them against `.dependency-cruiser.js`. Catches disallowed cross-package imports, circular dependencies, and commercial-module leaks.
+
+2. **Architecture boundary tests**: 50 unit tests in `packages/core/src/integration/boundary.test.ts` that verify every package pair from the matrix above. Tests scan all non-test source files for relative imports and fail if any import crosses a forbidden boundary.
+
+Both checks must pass before any PR can merge.
 
 ## Conversion Rules
 
