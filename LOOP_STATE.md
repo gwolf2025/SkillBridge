@@ -1,7 +1,7 @@
 # Loop State
 
-**Current State:** COMPLETE
-**Active Task:** None
+**Current State:** READY_FOR_BUILD
+**Active Task:** conversion/normalize — implement source-document-to-IR normalization pipeline with provenance, deterministic merge, body-section mapping, conflict detection, and extension preservation
 **Repair Cycle:** 0
 **Last Verification:** pnpm verify
 **Verification Result:** PASS — format:check, lint (0 warnings), depcheck (0 violations), typecheck, test:unit (138/138), test:integration (72/72), test:roundtrip (1/1), test:conversion (1/1), build (17 pkgs) all green

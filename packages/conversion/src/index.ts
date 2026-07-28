@@ -7,3 +7,11 @@
  *
  * No vendor-specific mappings. Adapter interfaces are imported from @skillbridge/adapter-sdk.
  */
+
+export {
+  normalizePackageToIR,
+  type NormalizationInput,
+  type NormalizationResult,
+  type FieldProvenance,
+  type FieldSource,
+} from './normalize.js';

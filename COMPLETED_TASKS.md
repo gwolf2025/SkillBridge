@@ -9,7 +9,7 @@
 | 2026-07-28 | Define and implement the SkillBridge package specification with SKILL.md, skillbridge.yaml, resource discovery, path safety, and validation | APPROVED — all 10 AC met, 2 MEDIUM + 1 LOW findings |
 | 2026-07-28 | Implement capability comparison, compatibility analysis, and security-impact assessment for @skillbridge/compatibility                      | APPROVED — all 9 AC met, zero findings              |
 | 2026-07-28 | Implement safe filesystem loader for SkillBridge packages as `@skillbridge/fs`                                                              | APPROVED — all 10 AC met, zero findings             |
-| 2026-07-28 | Enhance SKILL.md parser with source locations, absent-vs-malformed, extensions, CRLF normalization, structured diagnostics                | APPROVED — all 6 AC met, zero findings             |
+| 2026-07-28 | Enhance SKILL.md parser with source locations, absent-vs-malformed, extensions, CRLF normalization, structured diagnostics                  | APPROVED — all 6 AC met, zero findings              |
 
 ---
 

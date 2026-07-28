@@ -19,6 +19,7 @@
 - [x] **fs**: Implement safe filesystem loader with path safety, symlink protection, size/count limits, and file classification
 - [ ] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
 - [ ] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
+  - [ ] **conversion/normalize**: Implement source-document-to-IR normalization pipeline with provenance, deterministic merge, body-section mapping, conflict detection, and extension preservation
 - [ ] **adapter-sdk**: Extend `Adapter` with `install()`/`verify()`; add `AdapterRegistry`, `ConversionContext`, `AdapterError` types
 - [ ] **registry-local**: Implement package cache directory structure, local install, listing, metadata queries
 - [ ] **testing**: Implement sample SKILL.md fixtures, `createMockAdapter()`, `assertRoundTrip()`, contract test suite
