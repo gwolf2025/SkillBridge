@@ -19,10 +19,10 @@
   - [x] **compatibility/reports**: Expand `CompatibilityLevel` with `partial`/`unknown`, add `SemanticDegradation`/`MissingResource`/`Assumption` types, `CompatibilityReportFormatter`, `generateCompatibilityReport()`, security integration, unknown safeguard
 - [x] **fs**: Implement safe filesystem loader with path safety, symlink protection, size/count limits, and file classification
 - [ ] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
-- [ ] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
+- [x] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
   - [ ] **conversion/normalize**: Implement source-document-to-IR normalization pipeline with provenance, deterministic merge, body-section mapping, conflict detection, and extension preservation
 - [x] **adapter-sdk**: Extend `Adapter` with `install()`/`verify()`/`uninstall()`/`invoke()`/`installPlan()`; add `AdapterRegistry`, `ConversionContext`, `InstallPlan`, `AdapterError` types
-- [ ] **registry-local**: Implement package cache directory structure, local install, listing, metadata queries
+- [x] **registry-local**: Implement `LocalAdapterRegistry` with detection ranking, confidence scoring, ambiguity detection, and version-aware adapter storage
 - [x] **testing**: Implement `InMemoryTestAdapter`, `AdapterContract` test suite, expanded SKILL.md/testing fixtures
 
 ## Backlog — Initial Adapters

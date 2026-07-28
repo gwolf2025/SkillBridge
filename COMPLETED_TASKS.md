@@ -12,7 +12,8 @@
 | 2026-07-28 | Enhance SKILL.md parser with source locations, absent-vs-malformed, extensions, CRLF normalization, structured diagnostics                         | APPROVED — all 6 AC met, zero findings              |
 | 2026-07-28 | Implement capability vocabulary and target-support model — expanded Capability union, CAPABILITY_VOCABULARY, TargetProfile, analyzeCompatibility() | APPROVED — all 10 AC met, zero findings             |
 | 2026-07-28 | Implement full compatibility comparison engine with partial/unknown levels, report formatters, semantic degradation, security integration          | APPROVED — all 10 AC met, 0 findings (2 cycles)     |
-| 2026-07-28 | adapter-sdk — full public SDK with expanded adapter contracts, registry, test adapter                                                              | APPROVED — all 11 AC met, 0 findings (1 repair)      |
+| 2026-07-28 | adapter-sdk — full public SDK with expanded adapter contracts, registry, test adapter                                                              | APPROVED — all 11 AC met, 0 findings (1 repair)     |
+| 2026-07-28 | Local adapter registry, detection-ranking, selection system, and conversion DI                                                                     | APPROVED — all 10 AC met, 0 findings                 |
 
 ---
 

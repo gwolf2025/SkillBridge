@@ -6,6 +6,7 @@
  * capability analysis, compilation, diagnostics, provenance, output verification.
  *
  * No vendor-specific mappings. Adapter interfaces are imported from @skillbridge/adapter-sdk.
+ * Adapter instances are provided through dependency injection (AdapterSelector).
  */
 
 export {
@@ -15,3 +16,6 @@ export {
   type FieldProvenance,
   type FieldSource,
 } from './normalize.js';
+
+export { ConversionPipeline } from './pipeline.js';
+export type { ConversionProvenance, ConversionStep, ConversionResult } from './pipeline.js';

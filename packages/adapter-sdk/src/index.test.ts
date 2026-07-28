@@ -176,3 +176,42 @@ describe('singleton AdapterRegistry', () => {
     expect(a).toBe(b);
   });
 });
+
+describe('new error codes', () => {
+  it('ADAPTER-007 is for ambiguous detection', () => {
+    const err = new AdapterError('ADAPTER-007', 'ambiguous detection');
+    expect(err.code).toBe('ADAPTER-007');
+  });
+
+  it('ADAPTER-008 is for no adapter found', () => {
+    const err = new AdapterError('ADAPTER-008', 'no adapter found');
+    expect(err.code).toBe('ADAPTER-008');
+  });
+});
+
+describe('DetectionResult', () => {
+  it('holds adapter, confidence, and optional diagnostics', () => {
+    const result: import('./index.js').DetectionResult = {
+      adapter: testAdapter,
+      confidence: 0.8,
+      diagnostics: [
+        { severity: 'warning', message: 'low confidence', code: 'ADAPTER-002', source: 'test' },
+      ],
+    };
+    expect(result.adapter.manifest.name).toBe('test-adapter');
+    expect(result.confidence).toBe(0.8);
+    expect(result.diagnostics).toHaveLength(1);
+  });
+});
+
+describe('AdapterSelector', () => {
+  it('defines the expected method signatures', () => {
+    const selector: import('./index.js').AdapterSelector = {
+      selectSourceAdapter: () => ({ ok: true, value: testAdapter }),
+      selectTargetAdapter: () => ({ ok: true, value: testAdapter }),
+      findSourceAdapters: () => [{ adapter: testAdapter, confidence: 1 }],
+      listAdapters: () => [testManifest],
+    };
+    expect(selector.listAdapters()).toHaveLength(1);
+  });
+});

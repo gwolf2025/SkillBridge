@@ -77,7 +77,14 @@ export interface Adapter<TSource = unknown, TTarget = unknown, TNormalized = unk
 }
 
 export type AdapterErrorCode =
-  'ADAPTER-001' | 'ADAPTER-002' | 'ADAPTER-003' | 'ADAPTER-004' | 'ADAPTER-005' | 'ADAPTER-006';
+  | 'ADAPTER-001'
+  | 'ADAPTER-002'
+  | 'ADAPTER-003'
+  | 'ADAPTER-004'
+  | 'ADAPTER-005'
+  | 'ADAPTER-006'
+  | 'ADAPTER-007'
+  | 'ADAPTER-008';
 
 export class AdapterError extends SkillBridgeError {
   declare readonly code: AdapterErrorCode;
@@ -86,6 +93,25 @@ export class AdapterError extends SkillBridgeError {
     super(code, message);
     this.name = 'AdapterError';
   }
+}
+
+export interface DetectionResult {
+  adapter: Adapter;
+  confidence: number;
+  diagnostics?: Diagnostic[];
+}
+
+export interface AdapterSelector {
+  selectSourceAdapter(
+    source: unknown,
+    sourceFormat: string,
+    preferredName?: string,
+  ): Result<Adapter, Diagnostic[]>;
+
+  selectTargetAdapter(targetFormat: string, preferredName?: string): Result<Adapter, Diagnostic[]>;
+
+  findSourceAdapters(sourceFormat: string): DetectionResult[];
+  listAdapters(): AdapterManifest[];
 }
 
 export class AdapterRegistry {
