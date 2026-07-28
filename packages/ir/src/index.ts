@@ -269,6 +269,49 @@ export function validateNormalizedSkill(value: unknown): Result<NormalizedSkill,
   return validate(normalizedSkillSchema, value);
 }
 
+export interface PackageManifest {
+  name?: string;
+  version?: string;
+  description?: string;
+  author?: string;
+  license?: string;
+  scripts?: Record<string, string>;
+  dependencies?: Record<string, string>;
+}
+
+export interface SkillPackageResourceDirs {
+  scripts: string[];
+  references: string[];
+  templates: string[];
+  examples: string[];
+  assets: string[];
+  tests: string[];
+}
+
+export interface SkillPackageMeta {
+  path: string;
+  manifest?: PackageManifest;
+  hasSkillMd: boolean;
+  hasLicense: boolean;
+  hasNotice: boolean;
+  resourceDirs: SkillPackageResourceDirs;
+  diagnostics: Diagnostic[];
+}
+
+const packageManifestSchema = objectSchema({
+  name: optionalSchema(stringSchema()),
+  version: optionalSchema(stringSchema()),
+  description: optionalSchema(stringSchema()),
+  author: optionalSchema(stringSchema()),
+  license: optionalSchema(stringSchema()),
+  scripts: optionalSchema(objectSchema({}) as Schema<Record<string, string>>),
+  dependencies: optionalSchema(objectSchema({}) as Schema<Record<string, string>>),
+});
+
+export function validatePackageManifest(value: unknown): Result<PackageManifest, Diagnostic[]> {
+  return validate(packageManifestSchema, value);
+}
+
 export function migrateIRPackage(
   pkg: NormalizedSkill,
   targetVersion: IRVersion,

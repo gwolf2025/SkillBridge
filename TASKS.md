@@ -10,7 +10,7 @@
 - [x] **core**: Add `DiagnosticCollector` utility, `ValidationError`, `SourceLocation`, error codes, and serialization
 - [x] **schema**: Implement `@skillbridge/schema` with `Schema<T>`, all constructors, `validate`
 - [x] **ir**: Add `NormalizedSkill`, `ResolvedIR`, `CompiledIR` types; validation functions; version migration
-- [ ] **parser**: Implement SKILL.md frontmatter parser, markdown body parser, package-boundary detection, resource discovery; all with `Diagnostic` output
+- [x] **parser**: Implement package specification — SKILL.md parser, skillbridge.yaml validator, resource discovery, path safety, fixtures; all with `Diagnostic` output
 
 ## Backlog — Core Abstractions
 
