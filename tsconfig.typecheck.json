@@ -12,6 +12,7 @@
     "packages/adapter-sdk/src",
     "packages/compatibility/src",
     "packages/compiler/src",
+    "packages/fs/src",
     "packages/conversion/src",
     "packages/parser/src",
     "packages/registry-local/src",

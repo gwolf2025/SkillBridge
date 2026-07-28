@@ -14,7 +14,8 @@
 
 ## Backlog — Core Abstractions
 
-- [ ] **compatibility**: Define `CapabilityMap`, `compareCapabilities()`, `CompatibilityReport`, `assessSecurityImpact()`
+- [x] **compatibility**: Define `CapabilityMap`, `compareCapabilities()`, `CompatibilityReport`, `assessSecurityImpact()`
+- [x] **fs**: Implement safe filesystem loader with path safety, symlink protection, size/count limits, and file classification
 - [ ] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
 - [ ] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
 - [ ] **adapter-sdk**: Extend `Adapter` with `install()`/`verify()`; add `AdapterRegistry`, `ConversionContext`, `AdapterError` types
