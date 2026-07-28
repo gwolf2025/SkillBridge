@@ -4,7 +4,12 @@ export default defineWorkspace([
   {
     test: {
       name: 'unit',
-      include: ['packages/*/src/**/*.test.ts', 'packages/*/src/**/*.spec.ts'],
+      include: [
+        'packages/*/src/**/*.test.ts',
+        'packages/*/src/**/*.spec.ts',
+        'adapters/*/src/**/*.test.ts',
+        'adapters/*/src/**/*.spec.ts',
+      ],
       exclude: ['**/integration/**', '**/roundtrip/**', '**/conversion/**'],
     },
   },
@@ -14,6 +19,8 @@ export default defineWorkspace([
       include: [
         'packages/*/src/**/integration/**/*.test.ts',
         'packages/*/src/**/integration/**/*.spec.ts',
+        'adapters/*/src/**/integration/**/*.test.ts',
+        'adapters/*/src/**/integration/**/*.spec.ts',
       ],
     },
   },
@@ -23,6 +30,8 @@ export default defineWorkspace([
       include: [
         'packages/*/src/**/roundtrip/**/*.test.ts',
         'packages/*/src/**/roundtrip/**/*.spec.ts',
+        'adapters/*/src/**/roundtrip/**/*.test.ts',
+        'adapters/*/src/**/roundtrip/**/*.spec.ts',
       ],
     },
   },
@@ -32,6 +41,8 @@ export default defineWorkspace([
       include: [
         'packages/*/src/**/conversion/**/*.test.ts',
         'packages/*/src/**/conversion/**/*.spec.ts',
+        'adapters/*/src/**/conversion/**/*.test.ts',
+        'adapters/*/src/**/conversion/**/*.spec.ts',
       ],
     },
   },

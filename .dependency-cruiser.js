@@ -96,7 +96,7 @@ module.exports = {
     includeOnly: '^(packages|adapters|apps|commercial)',
 
     exclude: {
-      path: '\\.test\\.(ts|tsx)$',
+      path: '(\\.test\\.(ts|tsx)$|/dist/)',
     },
 
     enhancedResolveOptions: {

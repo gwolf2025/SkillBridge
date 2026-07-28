@@ -14,9 +14,15 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "@types/js-yaml": "^4.0.9",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
   }
 }
