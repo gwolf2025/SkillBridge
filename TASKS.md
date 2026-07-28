@@ -8,8 +8,8 @@
 ## Current Sprint — Core Foundations
 
 - [x] **core**: Add `DiagnosticCollector` utility, `ValidationError`, `SourceLocation`, error codes, and serialization
-- [ ] **schema**: Define `SkillSchema` type, version resolver, field-level validation
-- [ ] **ir**: Add `NormalizedSkill`, `ResolvedIR`, `CompiledIR` types; validation functions; version migration
+- [x] **schema**: Implement `@skillbridge/schema` with `Schema<T>`, all constructors, `validate`
+- [x] **ir**: Add `NormalizedSkill`, `ResolvedIR`, `CompiledIR` types; validation functions; version migration
 - [ ] **parser**: Implement SKILL.md frontmatter parser, markdown body parser, package-boundary detection, resource discovery; all with `Diagnostic` output
 
 ## Backlog — Core Abstractions

@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "composite": false
+  },
+  "include": [
+    "packages/core/src",
+    "packages/schema/src",
+    "packages/ir/src",
+    "packages/adapter-sdk/src",
+    "packages/compatibility/src",
+    "packages/compiler/src",
+    "packages/conversion/src",
+    "packages/parser/src",
+    "packages/registry-local/src",
+    "packages/runtime/src",
+    "packages/testing/src",
+    "apps/cli/src",
+    "adapters/portable/src",
+    "adapters/claude/src",
+    "adapters/codex/src",
+    "adapters/opencode/src"
+  ]
+}
