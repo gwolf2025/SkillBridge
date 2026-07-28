@@ -1,7 +1,7 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, resolve, normalize, isAbsolute, relative, sep } from 'node:path';
 import * as yaml from 'js-yaml';
-import type { Result, Diagnostic } from '../../core/src/index.js';
+import type { Result, Diagnostic, SourceLocation } from '../../core/src/index.js';
 import type {
   PackageManifest,
   SkillPackageMeta,
@@ -19,64 +19,165 @@ export type ParserErrorCode =
   | 'PARSER-007' // I/O error reading file
   | 'PARSER-008' // unknown field in skillbridge.yaml
   | 'PARSER-009' // invalid frontmatter structure
-  | 'PARSER-010'; // I/O error scanning directory
+  | 'PARSER-010' // I/O error scanning directory
+  | 'PARSER-011' // wrong type for known frontmatter field
+  | 'PARSER-012'; // document-level note
 
 export interface SkillMdSection {
   heading: string;
   body: string;
+  location?: SourceLocation;
 }
 
 export interface SkillMdResult {
   frontmatter: Record<string, unknown>;
   sections: SkillMdSection[];
+  extensions?: Record<string, unknown>;
+  diagnostics?: Diagnostic[];
 }
 
-export function parseSkillMd(content: string): Result<SkillMdResult, Diagnostic[]> {
-  const trimmed = content.replace(/^\uFEFF/, '').trimStart();
-  if (!trimmed.startsWith('---')) {
+const KNOWN_FRONTMATTER_FIELDS = new Set([
+  'name',
+  'version',
+  'description',
+  'capabilities',
+  'permissions',
+  'tools',
+  'scripts',
+  'inputs',
+  'outputs',
+  'resources',
+  'environment',
+  'execution',
+  'invocation',
+  'license',
+  'source',
+  'irVersion',
+  'provenance',
+  'extensions',
+]);
+
+const FIELD_EXPECTED_TYPES: Record<string, string> = {
+  name: 'string',
+  version: 'string',
+  description: 'string',
+  irVersion: 'string',
+  capabilities: 'array',
+  permissions: 'array',
+  tools: 'array',
+  scripts: 'array',
+  inputs: 'array',
+  outputs: 'array',
+  resources: 'array',
+  environment: 'array',
+  execution: 'object',
+  invocation: 'object',
+  source: 'object',
+  license: 'string or object',
+  provenance: 'object',
+  extensions: 'object',
+};
+
+function typeMatches(value: unknown, expected: string): boolean {
+  switch (expected) {
+    case 'string':
+      return typeof value === 'string';
+    case 'number':
+      return typeof value === 'number';
+    case 'boolean':
+      return typeof value === 'boolean';
+    case 'array':
+      return Array.isArray(value);
+    case 'object':
+      return typeof value === 'object' && value !== null && !Array.isArray(value);
+    case 'string or object':
+      return (
+        typeof value === 'string' ||
+        (typeof value === 'object' && value !== null && !Array.isArray(value))
+      );
+    default:
+      return true;
+  }
+}
+
+function findKeyLineIndex(lines: string[], key: string): number {
+  const re = new RegExp(`^${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:`);
+  for (let i = 0; i < lines.length; i++) {
+    if (re.test(lines[i])) return i;
+  }
+  return 0;
+}
+
+function lineAtOffset(text: string, offset: number): number {
+  return text.slice(0, Math.min(offset, text.length)).split('\n').length;
+}
+
+export function parseSkillMd(content: string, file?: string): Result<SkillMdResult, Diagnostic[]> {
+  const diagnostics: Diagnostic[] = [];
+
+  const loc = (line: number, column = 1): SourceLocation => ({ line, column, file });
+
+  const normalized = content.replace(/\r\n/g, '\n').replace(/^\uFEFF/, '');
+
+  if (!normalized.startsWith('---')) {
     return {
       ok: true,
-      value: { frontmatter: {}, sections: parseBodySections(trimmed) },
+      value: {
+        frontmatter: {},
+        sections: parseBodySections(normalized, 1, file),
+      },
     };
   }
 
-  const endIndex = trimmed.indexOf('---', 3);
+  const endIndex = normalized.indexOf('---', 3);
+  const frontmatterStartLine = 1;
+
   if (endIndex === -1) {
     return {
       ok: false,
-      error: [{ severity: 'error', message: 'unclosed frontmatter block', code: 'PARSER-009' }],
+      error: [
+        {
+          severity: 'error',
+          message: 'unclosed frontmatter block',
+          code: 'PARSER-009',
+          location: loc(frontmatterStartLine),
+        },
+      ],
     };
   }
 
-  const rawFrontmatter = trimmed.slice(3, endIndex).trim();
-  const bodyStart = trimmed.slice(endIndex + 3).trimStart();
+  const rawFrontmatter = normalized.slice(3, endIndex);
+  const trimmedFm = rawFrontmatter.trim();
+  const bodyStart = normalized.slice(endIndex + 3);
+  const bodyStartLine = lineAtOffset(normalized, endIndex + 3);
 
-  if (!rawFrontmatter) {
-    return { ok: true, value: { frontmatter: {}, sections: parseBodySections(bodyStart) } };
+  if (!trimmedFm) {
+    return {
+      ok: true,
+      value: {
+        frontmatter: {},
+        sections: parseBodySections(bodyStart, bodyStartLine, file),
+      },
+    };
   }
 
+  let parsed: unknown;
   try {
-    const parsed = yaml.load(rawFrontmatter);
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    parsed = yaml.load(trimmedFm);
+  } catch (err: unknown) {
+    if (err instanceof yaml.YAMLException && err.mark) {
       return {
         ok: false,
         error: [
           {
             severity: 'error',
-            message: 'frontmatter must be a YAML mapping (object)',
-            code: 'PARSER-009',
+            message: `malformed YAML in frontmatter: ${err.message}`,
+            code: 'PARSER-002',
+            location: loc(frontmatterStartLine + err.mark.line, err.mark.column + 1),
           },
         ],
       };
     }
-    return {
-      ok: true,
-      value: {
-        frontmatter: parsed as Record<string, unknown>,
-        sections: parseBodySections(bodyStart),
-      },
-    };
-  } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return {
       ok: false,
@@ -85,30 +186,85 @@ export function parseSkillMd(content: string): Result<SkillMdResult, Diagnostic[
           severity: 'error',
           message: `malformed YAML in frontmatter: ${message}`,
           code: 'PARSER-002',
+          location: loc(frontmatterStartLine + 1),
         },
       ],
     };
   }
+
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return {
+      ok: false,
+      error: [
+        {
+          severity: 'error',
+          message: 'frontmatter must be a YAML mapping (object)',
+          code: 'PARSER-009',
+          location: loc(frontmatterStartLine + 1),
+        },
+      ],
+    };
+  }
+
+  const record = parsed as Record<string, unknown>;
+  const frontmatter: Record<string, unknown> = {};
+  const extensions: Record<string, unknown> = {};
+  const rawFmLines = rawFrontmatter.split('\n');
+
+  for (const [key, value] of Object.entries(record)) {
+    if (KNOWN_FRONTMATTER_FIELDS.has(key)) {
+      frontmatter[key] = value;
+      const expectedType = FIELD_EXPECTED_TYPES[key];
+      if (expectedType && !typeMatches(value, expectedType)) {
+        const keyLineIndex = findKeyLineIndex(rawFmLines, key);
+        const valueType = value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
+        diagnostics.push({
+          severity: 'warning',
+          message: `expected '${key}' to be ${expectedType}, got ${valueType}`,
+          code: 'PARSER-011',
+          source: key,
+          location: loc(frontmatterStartLine + keyLineIndex),
+        });
+      }
+    } else {
+      extensions[key] = value;
+    }
+  }
+
+  const result: SkillMdResult = {
+    frontmatter,
+    sections: parseBodySections(bodyStart, bodyStartLine, file),
+  };
+  if (Object.keys(extensions).length > 0) {
+    result.extensions = extensions;
+  }
+  if (diagnostics.length > 0) {
+    result.diagnostics = diagnostics;
+  }
+
+  return { ok: true, value: result };
 }
 
-function parseBodySections(body: string): SkillMdSection[] {
+function parseBodySections(body: string, startLine: number, file?: string): SkillMdSection[] {
   const sections: SkillMdSection[] = [];
   const lines = body.split('\n');
   let currentHeading = '';
   let currentBodyLines: string[] = [];
+  let headingLineNumber = 1;
 
   function flush() {
     if (currentHeading) {
       sections.push({
         heading: currentHeading,
         body: currentBodyLines.join('\n').trim(),
+        location: { line: headingLineNumber, column: 1, file },
       });
     }
     currentBodyLines = [];
   }
 
-  for (const line of lines) {
-    const headingMatch = line.match(/^##\s*(.+)/);
+  for (let i = 0; i < lines.length; i++) {
+    const headingMatch = lines[i].match(/^##\s*(.+)/);
     if (
       headingMatch &&
       headingMatch[1].length > 0 &&
@@ -116,8 +272,9 @@ function parseBodySections(body: string): SkillMdSection[] {
     ) {
       flush();
       currentHeading = headingMatch[1].trim();
+      headingLineNumber = startLine + i;
     } else {
-      currentBodyLines.push(line);
+      currentBodyLines.push(lines[i]);
     }
   }
   flush();
@@ -330,6 +487,8 @@ export async function loadPackage(path: string): Promise<Result<SkillPackageMeta
   const parseResult = parseSkillMd(skillMdContent);
   if (!parseResult.ok) {
     diagnostics.push(...parseResult.error);
+  } else if (parseResult.value.diagnostics) {
+    diagnostics.push(...parseResult.value.diagnostics);
   }
 
   // Read skillbridge.yaml (optional)

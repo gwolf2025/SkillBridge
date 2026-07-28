@@ -11,6 +11,7 @@
 - [x] **schema**: Implement `@skillbridge/schema` with `Schema<T>`, all constructors, `validate`
 - [x] **ir**: Add `NormalizedSkill`, `ResolvedIR`, `CompiledIR` types; validation functions; version migration
 - [x] **parser**: Implement package specification — SKILL.md parser, skillbridge.yaml validator, resource discovery, path safety, fixtures; all with `Diagnostic` output
+  - [x] **parser/enhance**: Add source-location tracking, absent-vs-malformed distinction, line-ending normalization, extension-field preservation, and structured diagnostics to `parseSkillMd()`
 
 ## Backlog — Core Abstractions
 

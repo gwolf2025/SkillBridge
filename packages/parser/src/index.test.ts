@@ -196,6 +196,107 @@ custom_field: hello
   });
 });
 
+describe('parseSkillMd - enhanced features', () => {
+  it('includes source location on sections', () => {
+    const result = parseSkillMd(`---
+name: test
+---
+
+## Description
+
+Text here.
+
+## Usage
+
+More text.
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.sections[0].location).toBeDefined();
+    expect(result.value.sections[0].location!.line).toBe(5);
+    expect(result.value.sections[0].location!.column).toBe(1);
+    expect(result.value.sections[1].location!.line).toBe(9);
+  });
+
+  it('includes source location on error diagnostics', () => {
+    const result = parseSkillMd(`---
+name: [broken
+---`);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error[0].location).toBeDefined();
+    expect(result.error[0].location!.line).toBe(2);
+  });
+
+  it('includes location on unclosed frontmatter error', () => {
+    const result = parseSkillMd(`---
+unclosed`);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error[0].location).toBeDefined();
+    expect(result.error[0].location!.line).toBe(1);
+  });
+
+  it('separates unknown frontmatter fields into extensions', () => {
+    const result = parseSkillMd(`---
+name: test
+x-custom: custom-value
+---
+Body.
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.frontmatter.name).toBe('test');
+    expect(result.value.frontmatter).not.toHaveProperty('x-custom');
+    expect(result.value.extensions).toEqual({ 'x-custom': 'custom-value' });
+  });
+
+  it('does not include extensions when all fields are known', () => {
+    const result = parseSkillMd(`---
+name: test
+capabilities:
+  - file-read
+---
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.extensions).toBeUndefined();
+  });
+
+  it('produces PARSER-011 warning for known field with wrong type', () => {
+    const result = parseSkillMd(`---
+capabilities: not-an-array
+---
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.diagnostics).toBeDefined();
+    expect(result.value.diagnostics!.some((d) => d.code === 'PARSER-011')).toBe(true);
+    expect(result.value.diagnostics![0].location).toBeDefined();
+    expect(result.value.diagnostics![0].location!.line).toBe(2);
+    expect(result.value.diagnostics![0].source).toBe('capabilities');
+  });
+
+  it('does not warn for absent known fields', () => {
+    const result = parseSkillMd(`---
+other: value
+---
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.diagnostics).toBeUndefined();
+    expect(result.value.frontmatter).toEqual({});
+    expect(result.value.extensions).toEqual({ other: 'value' });
+  });
+
+  it('preserves section locations with CRLF line endings', () => {
+    const result = parseSkillMd('---\r\nname: test\r\n---\r\n\r\n## Section\r\nBody.');
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.sections[0].location!.line).toBe(5);
+  });
+});
+
 describe('validatePackagePath', () => {
   // Use repo root as a concrete, platform-appropriate base
   const root = process.cwd();
