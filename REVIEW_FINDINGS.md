@@ -1,8 +1,12 @@
 # Review Findings
 
-- **Review Date:** —
-- **Reviewer:** —
-- **Task Title:** —
-- **Diff Inspected:** —
-- **Findings:** (none)
-- **Summary:** Approved (No), Repair Required (No), Needs Human Decision (No), Total Findings: 0
+**Review Date:**
+**Reviewer:**
+**Task Title:**
+**Diff Inspected:**
+
+---
+
+## Findings
+
+*No findings.*

@@ -21,9 +21,9 @@
 - [ ] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
 - [ ] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
   - [ ] **conversion/normalize**: Implement source-document-to-IR normalization pipeline with provenance, deterministic merge, body-section mapping, conflict detection, and extension preservation
-- [ ] **adapter-sdk**: Extend `Adapter` with `install()`/`verify()`; add `AdapterRegistry`, `ConversionContext`, `AdapterError` types
+- [x] **adapter-sdk**: Extend `Adapter` with `install()`/`verify()`/`uninstall()`/`invoke()`/`installPlan()`; add `AdapterRegistry`, `ConversionContext`, `InstallPlan`, `AdapterError` types
 - [ ] **registry-local**: Implement package cache directory structure, local install, listing, metadata queries
-- [ ] **testing**: Implement sample SKILL.md fixtures, `createMockAdapter()`, `assertRoundTrip()`, contract test suite
+- [x] **testing**: Implement `InMemoryTestAdapter`, `AdapterContract` test suite, expanded SKILL.md/testing fixtures
 
 ## Backlog — Initial Adapters
 

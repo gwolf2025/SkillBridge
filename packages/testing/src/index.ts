@@ -103,3 +103,8 @@ export const validPackageManifest = {
 };
 
 export const emptySkillMd = '';
+
+export { InMemoryTestAdapter } from './adapter.js';
+export type { InMemoryTestAdapterOptions } from './adapter.js';
+export { describeAdapterContract } from './contract.js';
+export type { AdapterContractOptions } from './contract.js';
