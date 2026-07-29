@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import type { Adapter } from '../../adapter-sdk/src/index.js';
 import type { Result, Diagnostic } from '../../core/src/index.js';
 import { ok } from '../../core/src/index.js';
+import { stripBom } from '../../core/src/win32.js';
 
 export interface InstalledSkillInfo {
   name: string;
@@ -58,7 +59,7 @@ function tryReadFile(path: string): string | undefined {
   try {
     const s = statSync(path);
     if (!s.isFile()) return undefined;
-    return readFileSync(path, 'utf-8');
+    return stripBom(readFileSync(path, 'utf-8'));
   } catch {
     return undefined;
   }

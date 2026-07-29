@@ -1,6 +1,18 @@
-import { resolve, relative, normalize, sep } from 'node:path';
+import { resolve, relative, normalize } from 'node:path';
 import type { Result, Diagnostic } from '../../core/src/index.js';
 import { ok, fail } from '../../core/src/index.js';
+import { hasReservedWindowsFilename } from '../../core/src/win32.js';
+
+function hasTraversal(rel: string): boolean {
+  return (
+    rel.startsWith('..') ||
+    rel === '' ||
+    rel
+      .replace(/\\/g, '/')
+      .split('/')
+      .some((part) => part === '..')
+  );
+}
 
 export function validateOutputPath(
   targetPath: string,
@@ -11,6 +23,15 @@ export function validateOutputPath(
 
   const normalizedTarget = normalize(resolvedTarget);
   const normalizedOutput = normalize(resolvedOutput);
+
+  if (hasReservedWindowsFilename(targetPath)) {
+    return fail({
+      severity: 'error',
+      message: `Output path contains reserved Windows filename: ${targetPath}`,
+      code: 'COMPILER-014',
+      source: 'compiler',
+    });
+  }
 
   if (normalizedTarget === normalizedOutput) {
     return fail({
@@ -23,7 +44,7 @@ export function validateOutputPath(
 
   const rel = relative(normalizedOutput, normalizedTarget);
 
-  if (rel.startsWith('..') || rel === '' || rel.split(sep).some((part) => part === '..')) {
+  if (hasTraversal(rel)) {
     return fail({
       severity: 'error',
       message: `Output path traversal detected: ${targetPath} is outside ${outputDir}`,

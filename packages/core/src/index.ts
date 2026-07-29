@@ -90,6 +90,8 @@ export class SkillBridgeError extends Error {
   }
 }
 
+export { hasReservedWindowsFilename, stripBom, isCaseInsensitivePathEqual } from './win32.js';
+
 export class ValidationError extends SkillBridgeError {
   public readonly fieldErrors: Record<string, string[]>;
 

@@ -11,6 +11,7 @@ import { parseSkillMd, parseSkillbridgeYaml } from '../../../packages/parser/src
 import { CAPABILITY_VOCABULARY } from '../../../packages/ir/src/index.js';
 import type { Capability } from '../../../packages/ir/src/index.js';
 import { AtomicOutputWriter } from '../../../packages/compiler/src/index.js';
+import { stripBom } from '../../../packages/core/src/win32.js';
 import {
   plan as installPlan,
   execute,
@@ -176,7 +177,7 @@ export function parseArgs(argv: string[]): CliOptions {
 
 function readSourceSource(sourceArg: string): string {
   if (existsSync(sourceArg)) {
-    return readFileSync(sourceArg, 'utf-8');
+    return stripBom(readFileSync(sourceArg, 'utf-8'));
   }
   return sourceArg;
 }

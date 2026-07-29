@@ -1,7 +1,8 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
-import { join, resolve, normalize, isAbsolute, relative, sep } from 'node:path';
+import { join, resolve, normalize, isAbsolute, relative } from 'node:path';
 import * as yaml from 'js-yaml';
 import type { Result, Diagnostic, SourceLocation } from '../../core/src/index.js';
+import { hasReservedWindowsFilename, stripBom } from '../../core/src/win32.js';
 import type {
   PackageManifest,
   SkillPackageMeta,
@@ -378,6 +379,19 @@ export function validatePackagePath(
 ): Result<string, Diagnostic[]> {
   const normalizedRoot = normalize(resolve(packageRoot));
 
+  if (hasReservedWindowsFilename(proposedPath)) {
+    return {
+      ok: false,
+      error: [
+        {
+          severity: 'error',
+          message: `path contains reserved Windows filename: ${proposedPath}`,
+          code: 'PARSER-013',
+        },
+      ],
+    };
+  }
+
   if (isAbsolute(proposedPath)) {
     return {
       ok: false,
@@ -407,7 +421,11 @@ export function validatePackagePath(
   }
 
   const rel = relative(normalizedRoot, normalized);
-  if (rel.startsWith('..') || sep === '\\' ? rel.startsWith('..\\') : false) {
+  const hasTraversal = rel
+    .replace(/\\/g, '/')
+    .split('/')
+    .some((part) => part === '..');
+  if (hasTraversal) {
     return {
       ok: false,
       error: [
@@ -464,11 +482,24 @@ export async function loadPackage(path: string): Promise<Result<SkillPackageMeta
   const diagnostics: Diagnostic[] = [];
   const normalizedRoot = normalize(resolve(path));
 
+  if (hasReservedWindowsFilename(path)) {
+    return {
+      ok: false,
+      error: [
+        {
+          severity: 'error',
+          message: `path contains reserved Windows filename: ${path}`,
+          code: 'PARSER-013',
+        },
+      ],
+    };
+  }
+
   // Read SKILL.md (required)
   let hasSkillMd = false;
   let skillMdContent: string | undefined;
   try {
-    skillMdContent = await readFile(join(normalizedRoot, 'SKILL.md'), 'utf-8');
+    skillMdContent = stripBom(await readFile(join(normalizedRoot, 'SKILL.md'), 'utf-8'));
     hasSkillMd = true;
   } catch {
     return {

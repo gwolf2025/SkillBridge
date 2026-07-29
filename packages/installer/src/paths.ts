@@ -2,6 +2,7 @@ import { resolve, normalize, sep } from 'node:path';
 import { homedir } from 'node:os';
 import type { Result, Diagnostic } from '../../core/src/index.js';
 import { ok, fail } from '../../core/src/index.js';
+import { hasReservedWindowsFilename } from '../../core/src/win32.js';
 
 export function toPosixPath(p: string): string {
   return p.replace(/\\/g, '/');
@@ -19,6 +20,13 @@ export function resolveCustomScope(
   customPath: string,
   allowedBase?: string,
 ): Result<string, Diagnostic> {
+  if (hasReservedWindowsFilename(customPath)) {
+    return fail({
+      severity: 'error',
+      message: `custom path contains reserved Windows filename: '${customPath}'`,
+      code: 'INSTALL-004',
+    });
+  }
   const normalized = normalize(customPath);
   const parts = normalized.split(sep);
   let depth = 0;

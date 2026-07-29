@@ -60,4 +60,8 @@
 
 ---
 
+| 2026-07-29 | Windows compatibility audit — reserved filename validation, BOM stripping, separator-agnostic traversal detection, case-insensitive comparisons; 23 new cross-platform tests across core, compiler, parser, installer, and CLI | APPROVED — 9/9 AC met, zero findings |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._
