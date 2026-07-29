@@ -1,0 +1,9 @@
+{
+  "name": "minimal-skill",
+  "description": "A compiled minimal skill.",
+  "frontmatter": {
+    "name": "minimal-skill",
+    "description": "A compiled minimal skill."
+  },
+  "body": "Compiled body."
+}

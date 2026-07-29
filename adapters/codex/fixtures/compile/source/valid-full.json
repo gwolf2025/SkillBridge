@@ -1,0 +1,15 @@
+{
+  "name": "full-skill",
+  "description": "A compiled full skill.",
+  "frontmatter": {
+    "name": "full-skill",
+    "description": "A compiled full skill.",
+    "license": "MIT",
+    "compatibility": "Requires nothing"
+  },
+  "body": "Compiled full body.",
+  "extensions": {
+    "license": "MIT",
+    "compatibility": "Requires nothing"
+  }
+}

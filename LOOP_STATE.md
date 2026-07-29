@@ -1,11 +1,11 @@
 # Loop State
 
 **Current State:** COMPLETE
-**Active Task:** None
+**Active Task:** adapter/codex — implement full adapter
 **Repair Cycle:** 0
-**Last Verification:** 2026-07-29T10:33:00Z — pnpm verify all 9 gates pass (480 unit, 115 integration, 21 roundtrip, 60 conversion tests; format:check, lint, depcheck, typecheck, build)
-**Last Command:** /sb-complete
-**Last Plan:** CURRENT_TASK.md — research and document OpenAI Codex Agent Skills format
+**Last Verification:** 2026-07-29T11:24:00Z — pnpm verify all 9 gates pass (551 unit, 128 integration, 29 roundtrip, 60 conversion tests; format:check, lint, depcheck, typecheck, build)
+**Last Command:** /sb-build
+**Last Plan:** CURRENT_TASK.md — implement @skillbridge/adapter-codex with full 8 capabilities, companion file support, open-standard preservation
 
 ---
 

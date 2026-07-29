@@ -1,0 +1,8 @@
+interface:
+  display_name: 'Companion Skill'
+  short_description: 'Tests companion YAML parsing'
+  brand_color: '#10A37F'
+  default_prompt: 'Use companion skill'
+
+policy:
+  allow_implicit_invocation: false

@@ -15,9 +15,9 @@ _No findings._
 
 ## Summary
 
-| Question | Answer |
-|---|---|
-| **Approved** | — |
-| **Repair Required** | — |
-| **Needs Human Decision** | — |
-| **Total Findings** | 0 |
+| Question                 | Answer |
+| ------------------------ | ------ |
+| **Approved**             | —      |
+| **Repair Required**      | —      |
+| **Needs Human Decision** | —      |
+| **Total Findings**       | 0      |
