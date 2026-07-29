@@ -32,6 +32,7 @@
 - [x] **adapter/opencode**: Implement full adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; 44 unit + 12 integration + 6 roundtrip tests + contract; 2 HIGH + 2 MEDIUM + 3 LOW findings fixed during repair
   - [x] **adapter/opencode/research**: Produce specification, field mapping, permission model, fixtures plan. See `adapters/opencode/specification.md` and `fixtures-plan.md`.
 - [ ] **adapter/claude**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
+  - [x] **adapter/claude/research**: Document source format, frontmatter fields, discovery paths, invocation, permissions, unsupported behavior, fixture plan, specs, ACs. See `adapters/claude/specification.md` and `fixtures-plan.md`.
 - [ ] **adapter/codex**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
 
 ## Backlog — CLI and Integration
