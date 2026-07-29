@@ -73,6 +73,14 @@ module.exports = {
     },
 
     {
+      name: 'installer-not-adapters',
+      severity: 'error',
+      comment: 'packages/installer must not import concrete adapters or commercial',
+      from: { path: 'packages/installer' },
+      to: { path: ['adapters', 'commercial'] },
+    },
+
+    {
       name: 'no-adapter-cross-import',
       severity: 'error',
       comment: 'Adapters must not import from other adapters',

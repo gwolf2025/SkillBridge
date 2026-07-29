@@ -1,0 +1,10 @@
+export { plan } from './planner.js';
+export type { PlannerOptions } from './planner.js';
+export { inspect } from './inspector.js';
+export type { DestinationState } from './inspector.js';
+export { detect } from './conflict.js';
+export { generate, computeExistingChecksums } from './manifest.js';
+export type { IntegrityManifest } from './manifest.js';
+export { formatDryRun } from './dryrun.js';
+export type { DryRunOptions, ResolvedInstallPlan } from './dryrun.js';
+export { toPosixPath, resolveProjectScope, resolveUserScope, resolveCustomScope } from './paths.js';

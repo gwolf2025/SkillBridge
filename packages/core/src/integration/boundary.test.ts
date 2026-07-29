@@ -17,6 +17,7 @@ const PACKAGE_DIRS: Record<string, string> = {
   'adapter-sdk': resolve(rootDir, 'packages', 'adapter-sdk'),
   'registry-local': resolve(rootDir, 'packages', 'registry-local'),
   testing: resolve(rootDir, 'packages', 'testing'),
+  installer: resolve(rootDir, 'packages', 'installer'),
   'adapter-portable': resolve(rootDir, 'adapters', 'portable'),
   'adapter-claude': resolve(rootDir, 'adapters', 'claude'),
   'adapter-codex': resolve(rootDir, 'adapters', 'codex'),
@@ -43,6 +44,16 @@ const FORBIDDEN_IMPORTS: Array<{ from: string[]; to: string[]; reason: string }>
     from: ['adapter-portable', 'adapter-claude', 'adapter-codex', 'adapter-opencode'],
     to: ['adapter-portable', 'adapter-claude', 'adapter-codex', 'adapter-opencode'],
     reason: 'adapters must not import from other adapters',
+  },
+  {
+    from: ['installer'],
+    to: ['adapter-portable', 'adapter-claude', 'adapter-codex', 'adapter-opencode'],
+    reason: 'installer must not import concrete adapters',
+  },
+  {
+    from: ['installer'],
+    to: ['commercial'],
+    reason: 'installer must not import commercial code',
   },
 ];
 

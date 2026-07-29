@@ -54,12 +54,35 @@ export interface ConversionContext<TSource = unknown, TNormalized = unknown> {
   options?: Record<string, unknown>;
 }
 
+export type InstallScope = 'project' | 'user' | 'custom';
+
+export type OverwritePolicy = 'never' | 'always' | 'if-newer' | 'if-different';
+
+export interface ConflictInfo {
+  targetPath: string;
+  plannedChecksum?: string;
+  existingChecksum?: string;
+  existingModTime?: string;
+  severity: 'error' | 'warning' | 'info';
+}
+
+export interface BackupEntry {
+  sourcePath: string;
+  backupPath: string;
+  checksum?: string;
+}
+
 export interface InstallPlan {
   steps: string[];
   estimatedDuration?: number;
   warnings?: Diagnostic[];
   requires?: string[];
   permissions?: Permission[];
+  scope?: InstallScope;
+  customPath?: string;
+  overwritePolicy?: OverwritePolicy;
+  conflicts?: ConflictInfo[];
+  backupPlan?: BackupEntry[];
 }
 
 export interface Adapter<TSource = unknown, TTarget = unknown, TNormalized = unknown> {

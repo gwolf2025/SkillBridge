@@ -3,9 +3,9 @@
 **Current State:** COMPLETE
 **Active Task:** None
 **Repair Cycle:** 0
-**Last Verification:** 2026-07-29T14:56:00Z — pnpm verify all 9 gates pass (587 unit, 141 integration, 29 roundtrip, 71 conversion tests; format:check, lint, depcheck, typecheck, build)
+**Last Verification:** 2026-07-29T15:10:00Z — pnpm verify all 9 gates pass (620 unit, 151 integration, 29 roundtrip, 71 conversion tests; format:check, lint, depcheck, typecheck, build)
 **Last Command:** /sb-complete
-**Last Plan:** CURRENT_TASK.md — implement parse, validate, inspect, adapters, capabilities, doctor CLI commands
+**Last Plan:** CURRENT_TASK.md — implement adapter-driven installation planner with scope handling, conflict detection, integrity manifests, and dry-run output
 
 ---
 

@@ -41,6 +41,7 @@
 - [x] **cli**: Implement CLI foundation with `skillbridge convert`, `skillbridge list-adapters`, `--help`, `--version`, `--json`, structured errors, exit codes; 20 unit + 10 integration tests
 - [x] **cli**: Implement 6 CLI subcommands — `parse`, `validate`, `inspect`, `adapters`, `capabilities`, `doctor`; 32 unit + 13 integration tests; secret redaction
 - [x] **cli**: Implement `convert --output-dir`, `--dry-run`, `--overwrite`; add `compile` command; 11 end-to-end conversion tests
+- [x] **installer**: Implement `@skillbridge/installer` package — scope resolution, conflict detection, integrity manifests, dry-run output, backup plans; 33 unit + 5 integration tests
 - [ ] **cli**: Implement `skillbridge install` and `skillbridge verify` subcommands
 - [ ] **integration**: Write cross-package integration tests for full pipeline flows
 - [ ] **roundtrip**: Write round-trip conversion tests for each adapter pair

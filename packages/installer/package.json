@@ -1,0 +1,25 @@
+{
+  "name": "@skillbridge/installer",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Cross-adapter installation planning — scope resolution, conflict detection, integrity manifests, dry-run output",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
