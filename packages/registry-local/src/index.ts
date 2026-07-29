@@ -15,6 +15,13 @@ import type {
   AdapterSelector,
 } from '../../adapter-sdk/src/index.js';
 
+export { SkillPackageCache } from './cache.js';
+export type {
+  CachedPackageEntry,
+  VerificationResult,
+  CacheSearchQuery,
+  CacheOptions,
+} from './cache.js';
 export type { AdapterSelector, DetectionResult, Adapter, AdapterManifest, Result, Diagnostic };
 
 export interface LocalAdapterRegistryOptions {

@@ -43,6 +43,7 @@
 ---
 
 | 2026-07-29 | Implement cross-adapter compatibility verification — `CompatibilityMatrix` JSON/Markdown formatter; 33 verification tests (parse-normalize-compile, reparse, round-trip, deterministic, manifest, degradation) across 4 adapters | APPROVED — 9/9 AC met, zero findings |
+| 2026-07-29 | Implement `SkillPackageCache` — local package registry with add, list, search, get, remove, verify, adapter compatibility, atomic index persistence; 22 tests | APPROVED — 19/19 AC met, zero findings |
 
 ---
 

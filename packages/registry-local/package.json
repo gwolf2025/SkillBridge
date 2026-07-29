@@ -2,7 +2,7 @@
   "name": "@skillbridge/registry-local",
   "version": "0.0.0",
   "private": true,
-  "description": "Future local package cache and registry abstractions for SkillBridge",
+  "description": "Local package cache and registry abstractions for SkillBridge",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -14,9 +14,12 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
   }
 }
