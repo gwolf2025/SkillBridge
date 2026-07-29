@@ -13,6 +13,7 @@ import type {
   SecurityImpactReport,
   TargetProfile,
   TargetCapabilitySupport,
+  CompatibilityLevel,
 } from '../../compatibility/src/index.js';
 import { normalizePackageToIR } from './normalize.js';
 import type { FieldProvenance } from './normalize.js';
@@ -32,7 +33,7 @@ export interface ConversionProvenance {
   startedAt: string;
 }
 
-export type PolicyMode = 'strict' | 'relaxed' | 'permissive';
+export type PolicyMode = 'strict' | 'safe' | 'permissive';
 
 export interface PolicyDecision {
   type:
@@ -75,6 +76,30 @@ function policyDecision(
   return { type, action, detail, diagnostic };
 }
 
+function capabilityAction(
+  level: CompatibilityLevel,
+  policy: PolicyMode,
+): 'allow' | 'warn' | 'block' {
+  if (policy === 'strict') {
+    return level === 'native' ? 'allow' : 'block';
+  }
+  if (policy === 'safe') {
+    if (level === 'native' || level === 'emulated') return 'allow';
+    return 'warn';
+  }
+  return 'allow';
+}
+
+function securityAction(policy: PolicyMode): 'allow' | 'warn' | 'block' {
+  if (policy === 'strict' || policy === 'safe') return 'block';
+  return 'warn';
+}
+
+function resourceAction(policy: PolicyMode): 'allow' | 'warn' | 'block' {
+  if (policy === 'strict') return 'block';
+  return 'warn';
+}
+
 function applyPolicy(
   report: CompatibilityReport | null,
   securityImpact: SecurityImpactReport | null,
@@ -85,57 +110,43 @@ function applyPolicy(
 
   if (report) {
     for (const c of report.comparisons) {
-      if (c.level === 'missing') {
-        const action = policy === 'strict' ? 'block' : 'warn';
-        decisions.push(
-          policyDecision(
-            'degradation',
-            action,
-            `capability '${c.capability}' is missing in target`,
-            c.diagnostics?.[0],
-          ),
-        );
-        if (action === 'block') blocked = true;
-      } else if (c.level === 'degraded') {
-        const action = policy === 'strict' ? 'block' : policy === 'relaxed' ? 'warn' : 'allow';
-        decisions.push(
-          policyDecision(
-            'degradation',
-            action,
-            `capability '${c.capability}' is degraded in target`,
-            c.diagnostics?.[0],
-          ),
-        );
-        if (action === 'block') blocked = true;
-      } else if (c.level === 'unknown') {
-        const action = policy === 'strict' ? 'block' : 'warn';
-        decisions.push(
-          policyDecision(
-            'degradation',
-            action,
-            `capability '${c.capability}' has unknown support level in target`,
-            c.diagnostics?.[0],
-          ),
-        );
+      const action = capabilityAction(c.level, policy);
+      const type = c.level === 'unknown' ? 'unknown-capability' : 'degradation';
+      const detail =
+        c.level === 'emulated'
+          ? `capability '${c.capability}' is emulated by target`
+          : c.level === 'missing'
+            ? `capability '${c.capability}' is missing in target`
+            : c.level === 'degraded'
+              ? `capability '${c.capability}' is degraded in target`
+              : c.level === 'partial'
+                ? `capability '${c.capability}' is partially supported by target`
+                : c.level === 'unknown'
+                  ? `capability '${c.capability}' has unknown support level in target`
+                  : `capability '${c.capability}' is ${c.level}`;
+
+      if (action !== 'allow' || c.level !== 'native') {
+        decisions.push(policyDecision(type, action, detail, c.diagnostics?.[0]));
         if (action === 'block') blocked = true;
       }
     }
 
     for (const r of report.missingResources) {
+      const action = resourceAction(policy);
       decisions.push(
         policyDecision(
           'missing-resource',
-          policy === 'strict' ? 'block' : 'warn',
+          action,
           `resource '${r.resource}' for capability '${r.capability}' is missing in target`,
         ),
       );
-      if (policy === 'strict') blocked = true;
+      if (action === 'block') blocked = true;
     }
   }
 
   if (securityImpact) {
     for (const w of securityImpact.weakenedPermissions) {
-      const action = policy === 'strict' ? 'block' : 'warn';
+      const action = securityAction(policy);
       decisions.push(
         policyDecision(
           'security-impact',
@@ -146,7 +157,7 @@ function applyPolicy(
       if (action === 'block') blocked = true;
     }
     for (const r of securityImpact.removedPermissions) {
-      const action = policy === 'strict' ? 'block' : 'warn';
+      const action = securityAction(policy);
       decisions.push(
         policyDecision(
           'security-impact',
@@ -218,7 +229,19 @@ export class ConversionPipeline {
     const startedAt = new Date().toISOString();
     const diagnostics: Diagnostic[] = [];
     const fieldProvenances: FieldProvenance[] = [];
-    const policy = options?.policy ?? 'relaxed';
+    const rawPolicy: string | undefined = options?.policy;
+    let policy: PolicyMode = 'safe';
+
+    if (rawPolicy === 'relaxed') {
+      diagnostics.push({
+        severity: 'error',
+        message: `'relaxed' policy is no longer supported — use 'safe' (default) or 'permissive'`,
+        code: 'CONV-012',
+        source: 'policy',
+      });
+    } else if (rawPolicy === 'strict' || rawPolicy === 'safe' || rawPolicy === 'permissive') {
+      policy = rawPolicy;
+    }
 
     const sourceResult = this.selector.selectSourceAdapter(
       source,
@@ -355,6 +378,7 @@ export class ConversionPipeline {
         const securityResult = assessSecurityImpact(requiredPermissions, declaredPermissions);
         if (securityResult.ok) {
           securityImpact = securityResult.value;
+          diagnostics.push(...securityImpact.diagnostics);
         } else {
           diagnostics.push(...securityResult.error);
         }
@@ -362,6 +386,12 @@ export class ConversionPipeline {
     }
 
     const policyResult = applyPolicy(compatibility, securityImpact, policy);
+
+    for (const d of policyResult.decisions) {
+      if (d.diagnostic && d.action !== 'block') {
+        diagnostics.push(d.diagnostic);
+      }
+    }
 
     if (policyResult.blocked) {
       diagnostics.push({

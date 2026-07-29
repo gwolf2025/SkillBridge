@@ -99,6 +99,31 @@ function selectorWithAdapter(adapter: Adapter, targetAdapter?: Adapter): Adapter
   };
 }
 
+function makeCompatReport(
+  overrides: Partial<CompatibilityReport> & { comparisons: CompatibilityReport['comparisons'] },
+): CompatibilityReport {
+  const comparisons = overrides.comparisons;
+  const nativeCount = comparisons.filter((c) => c.level === 'native').length;
+  const emulatedCount = comparisons.filter((c) => c.level === 'emulated').length;
+  const missingCount = comparisons.filter((c) => c.level === 'missing').length;
+  const degradedCount = comparisons.filter((c) => c.level === 'degraded').length;
+  const partialCount = comparisons.filter((c) => c.level === 'partial').length;
+  const unknownCount = comparisons.filter((c) => c.level === 'unknown').length;
+  return {
+    overall: 'degraded',
+    nativeCount,
+    emulatedCount,
+    missingCount,
+    degradedCount,
+    partialCount,
+    unknownCount,
+    semanticDegradations: [],
+    missingResources: [],
+    assumptions: [],
+    ...overrides,
+  };
+}
+
 beforeEach(() => {
   vi.mocked(analyzeCompatibility).mockReset();
   vi.mocked(assessSecurityImpact).mockReset();
@@ -380,137 +405,543 @@ describe('ConversionPipeline', () => {
     });
   });
 
+  // -------- policy enforcement tests --------
+
   describe('policy enforcement', () => {
-    it('blocks conversion in strict mode when capability is missing', () => {
-      const adapter = adapterWithNormalize();
-      vi.mocked(analyzeCompatibility).mockReturnValue({
-        ok: true,
-        value: {
-          comparisons: [{ capability: 'file-read', required: true, level: 'missing' }],
-          overall: 'missing',
-          nativeCount: 0,
-          emulatedCount: 0,
-          missingCount: 1,
-          degradedCount: 0,
-          partialCount: 0,
-          unknownCount: 0,
-          semanticDegradations: [],
-          missingResources: [],
-          assumptions: [],
-        },
-      } as Result<CompatibilityReport, Diagnostic[]>);
+    describe('strict mode', () => {
+      it('blocks on missing capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'missing' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(false);
+      });
 
-      const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
-      const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
-      expect(result.ok).toBe(false);
+      it('blocks on degraded capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'degraded' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(false);
+      });
+
+      it('blocks on unknown capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'unknown' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(false);
+      });
+
+      it('blocks on partial capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'partial' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(false);
+      });
+
+      it('blocks on emulated capability (all emulation is lossy)', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'emulated' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(false);
+      });
+
+      it('allows native capability', () => {
+        const adapter = adapterWithNormalize();
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('blocks on weakened permission', () => {
+        const adapter = adapterWithNormalize({
+          normalize: () =>
+            ({
+              irVersion: '0.1.0',
+              identity: { name: 'test-skill', version: '1.0.0' },
+              capabilities: ['file-read'],
+              permissions: [{ resource: 'fs', actions: ['read', 'write'] }],
+              source: { format: 'markdown' },
+            }) as NormalizedSkill,
+        });
+        vi.mocked(assessSecurityImpact).mockReturnValue({
+          ok: true,
+          value: {
+            preservedPermissions: [],
+            weakenedPermissions: [
+              {
+                resource: 'fs',
+                requiredActions: ['read', 'write'],
+                declaredActions: ['read'],
+                missingActions: ['write'],
+              },
+            ],
+            addedPermissions: [],
+            removedPermissions: [],
+            diagnostics: [
+              { severity: 'warning', message: 'weakened', code: 'COMPAT-003', source: 'fs' },
+            ],
+          },
+        } as Result<SecurityImpactReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(false);
+      });
+
+      it('blocks on removed permission', () => {
+        const adapter = adapterWithNormalize({
+          normalize: () =>
+            ({
+              irVersion: '0.1.0',
+              identity: { name: 'test-skill', version: '1.0.0' },
+              capabilities: ['file-read'],
+              permissions: [{ resource: 'fs', actions: ['read'] }],
+              source: { format: 'markdown' },
+            }) as NormalizedSkill,
+        });
+        vi.mocked(assessSecurityImpact).mockReturnValue({
+          ok: true,
+          value: {
+            preservedPermissions: [],
+            weakenedPermissions: [],
+            addedPermissions: [],
+            removedPermissions: [{ resource: 'fs', requiredActions: ['read'] }],
+            diagnostics: [
+              { severity: 'warning', message: 'removed', code: 'COMPAT-002', source: 'fs' },
+            ],
+          },
+        } as Result<SecurityImpactReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(false);
+      });
     });
 
-    it('allows conversion in relaxed mode when capability is missing', () => {
-      const adapter = adapterWithNormalize();
-      vi.mocked(analyzeCompatibility).mockReturnValue({
-        ok: true,
-        value: {
-          comparisons: [{ capability: 'file-read', required: true, level: 'missing' }],
-          overall: 'missing',
-          nativeCount: 0,
-          emulatedCount: 0,
-          missingCount: 1,
-          degradedCount: 0,
-          partialCount: 0,
-          unknownCount: 0,
-          semanticDegradations: [],
-          missingResources: [],
-          assumptions: [],
-        },
-      } as Result<CompatibilityReport, Diagnostic[]>);
+    describe('safe mode', () => {
+      it('allows native capability', () => {
+        const adapter = adapterWithNormalize();
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(true);
+      });
 
-      const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
-      const result = pipeline.run('src', 'markdown', 'json', { policy: 'relaxed' });
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value.policyResult).not.toBeNull();
-        expect(result.value.policyResult?.blocked).toBe(false);
-      }
+      it('allows emulated capability (declared safe emulation)', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'emulated' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('warns on missing capability but continues', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'missing' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          expect(result.value.policyResult?.blocked).toBe(false);
+          const warnDecisions = result.value.policyResult?.decisions.filter(
+            (d) => d.action === 'warn',
+          );
+          expect(warnDecisions?.length).toBeGreaterThan(0);
+        }
+      });
+
+      it('warns on degraded capability but continues', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'degraded' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('warns on unknown capability but continues', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'unknown' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('warns on partial capability but continues', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'partial' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('blocks on weakened permission', () => {
+        const adapter = adapterWithNormalize({
+          normalize: () =>
+            ({
+              irVersion: '0.1.0',
+              identity: { name: 'test-skill', version: '1.0.0' },
+              capabilities: ['file-read'],
+              permissions: [{ resource: 'fs', actions: ['read', 'write'] }],
+              source: { format: 'markdown' },
+            }) as NormalizedSkill,
+        });
+        vi.mocked(assessSecurityImpact).mockReturnValue({
+          ok: true,
+          value: {
+            preservedPermissions: [],
+            weakenedPermissions: [
+              {
+                resource: 'fs',
+                requiredActions: ['read', 'write'],
+                declaredActions: ['read'],
+                missingActions: ['write'],
+              },
+            ],
+            addedPermissions: [],
+            removedPermissions: [],
+            diagnostics: [
+              { severity: 'warning', message: 'weakened', code: 'COMPAT-003', source: 'fs' },
+            ],
+          },
+        } as Result<SecurityImpactReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(false);
+      });
+
+      it('blocks on removed permission', () => {
+        const adapter = adapterWithNormalize({
+          normalize: () =>
+            ({
+              irVersion: '0.1.0',
+              identity: { name: 'test-skill', version: '1.0.0' },
+              capabilities: ['file-read'],
+              permissions: [{ resource: 'fs', actions: ['read'] }],
+              source: { format: 'markdown' },
+            }) as NormalizedSkill,
+        });
+        vi.mocked(assessSecurityImpact).mockReturnValue({
+          ok: true,
+          value: {
+            preservedPermissions: [],
+            weakenedPermissions: [],
+            addedPermissions: [],
+            removedPermissions: [{ resource: 'fs', requiredActions: ['read'] }],
+            diagnostics: [
+              { severity: 'warning', message: 'removed', code: 'COMPAT-002', source: 'fs' },
+            ],
+          },
+        } as Result<SecurityImpactReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(false);
+      });
     });
 
-    it('allows all in permissive mode even with degraded capabilities', () => {
-      const adapter = adapterWithNormalize();
-      vi.mocked(analyzeCompatibility).mockReturnValue({
-        ok: true,
-        value: {
-          comparisons: [{ capability: 'file-read', required: true, level: 'degraded' }],
-          overall: 'degraded',
-          nativeCount: 0,
-          emulatedCount: 0,
-          missingCount: 0,
-          degradedCount: 1,
-          partialCount: 0,
-          unknownCount: 0,
-          semanticDegradations: [],
-          missingResources: [],
-          assumptions: [],
-        },
-      } as Result<CompatibilityReport, Diagnostic[]>);
+    describe('permissive mode', () => {
+      it('allows missing capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'missing' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'permissive' });
+        expect(result.ok).toBe(true);
+      });
 
-      const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
-      const result = pipeline.run('src', 'markdown', 'json', { policy: 'permissive' });
-      expect(result.ok).toBe(true);
+      it('allows degraded capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'degraded' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'permissive' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('allows emulated capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'emulated' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'permissive' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('allows unknown capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'unknown' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'permissive' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('allows partial capability', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'partial' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'permissive' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('allows weakened permission with explicit diagnostics', () => {
+        const adapter = adapterWithNormalize({
+          normalize: () =>
+            ({
+              irVersion: '0.1.0',
+              identity: { name: 'test-skill', version: '1.0.0' },
+              capabilities: ['file-read'],
+              permissions: [{ resource: 'fs', actions: ['read', 'write'] }],
+              source: { format: 'markdown' },
+            }) as NormalizedSkill,
+        });
+        vi.mocked(assessSecurityImpact).mockReturnValue({
+          ok: true,
+          value: {
+            preservedPermissions: [],
+            weakenedPermissions: [
+              {
+                resource: 'fs',
+                requiredActions: ['read', 'write'],
+                declaredActions: ['read'],
+                missingActions: ['write'],
+              },
+            ],
+            addedPermissions: [],
+            removedPermissions: [],
+            diagnostics: [
+              {
+                severity: 'warning',
+                message: 'permission weakened',
+                code: 'COMPAT-003',
+                source: 'fs',
+              },
+            ],
+          },
+        } as Result<SecurityImpactReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'permissive' });
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          const diagCodes = result.value.diagnostics.map((d) => d.code);
+          expect(diagCodes).toContain('COMPAT-003');
+        }
+      });
+
+      it('allows removed permission with explicit diagnostics', () => {
+        const adapter = adapterWithNormalize({
+          normalize: () =>
+            ({
+              irVersion: '0.1.0',
+              identity: { name: 'test-skill', version: '1.0.0' },
+              capabilities: ['file-read'],
+              permissions: [{ resource: 'fs', actions: ['read'] }],
+              source: { format: 'markdown' },
+            }) as NormalizedSkill,
+        });
+        vi.mocked(assessSecurityImpact).mockReturnValue({
+          ok: true,
+          value: {
+            preservedPermissions: [],
+            weakenedPermissions: [],
+            addedPermissions: [],
+            removedPermissions: [{ resource: 'fs', requiredActions: ['read'] }],
+            diagnostics: [
+              {
+                severity: 'warning',
+                message: 'permission removed',
+                code: 'COMPAT-002',
+                source: 'fs',
+              },
+            ],
+          },
+        } as Result<SecurityImpactReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'permissive' });
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          const diagCodes = result.value.diagnostics.map((d) => d.code);
+          expect(diagCodes).toContain('COMPAT-002');
+        }
+      });
     });
 
-    it('defaults to relaxed policy', () => {
-      const adapter = adapterWithNormalize();
-      vi.mocked(analyzeCompatibility).mockReturnValue({
-        ok: true,
-        value: {
-          comparisons: [{ capability: 'file-read', required: true, level: 'missing' }],
-          overall: 'missing',
-          nativeCount: 0,
-          emulatedCount: 0,
-          missingCount: 1,
-          degradedCount: 0,
-          partialCount: 0,
-          unknownCount: 0,
-          semanticDegradations: [],
-          missingResources: [],
-          assumptions: [],
-        },
-      } as Result<CompatibilityReport, Diagnostic[]>);
+    describe('default and edge cases', () => {
+      it('defaults to safe policy', () => {
+        const adapter = adapterWithNormalize();
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json');
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          expect(result.value.policyResult?.policy).toBe('safe');
+        }
+      });
 
-      const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
-      const result = pipeline.run('src', 'markdown', 'json');
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value.policyResult?.policy).toBe('relaxed');
-      }
-    });
+      it('reports policy decisions in results', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({
+            comparisons: [{ capability: 'file-read', required: true, level: 'missing' }],
+          }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json');
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          expect(result.value.policyResult?.decisions.length).toBeGreaterThan(0);
+          expect(result.value.policyResult?.decisions[0].type).toBe('degradation');
+          expect(result.value.policyResult?.decisions[0].action).toBe('warn');
+        }
+      });
 
-    it('reports policy decisions in results', () => {
-      const adapter = adapterWithNormalize();
-      vi.mocked(analyzeCompatibility).mockReturnValue({
-        ok: true,
-        value: {
-          comparisons: [{ capability: 'file-read', required: true, level: 'missing' }],
-          overall: 'missing',
-          nativeCount: 0,
-          emulatedCount: 0,
-          missingCount: 1,
-          degradedCount: 0,
-          partialCount: 0,
-          unknownCount: 0,
-          semanticDegradations: [],
-          missingResources: [],
-          assumptions: [],
-        },
-      } as Result<CompatibilityReport, Diagnostic[]>);
+      it('rejects deprecated relaxed policy with CONV-012 diagnostic', () => {
+        const adapter = adapterWithNormalize();
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', {
+          policy: 'relaxed' as 'safe',
+        });
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          const codes = result.value.diagnostics.map((d) => d.code);
+          expect(codes).toContain('CONV-012');
+          expect(result.value.policyResult?.policy).toBe('safe');
+        }
+      });
 
-      const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
-      const result = pipeline.run('src', 'markdown', 'json');
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect(result.value.policyResult?.decisions.length).toBeGreaterThan(0);
-        expect(result.value.policyResult?.decisions[0].type).toBe('degradation');
-        expect(result.value.policyResult?.decisions[0].action).toBe('warn');
-      }
+      it('handles empty comparison report', () => {
+        const adapter = adapterWithNormalize();
+        vi.mocked(analyzeCompatibility).mockReturnValue({
+          ok: true,
+          value: makeCompatReport({ comparisons: [] }),
+        } as Result<CompatibilityReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(true);
+      });
+
+      it('produces no policy decisions for pure native', () => {
+        const adapter = adapterWithNormalize();
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'strict' });
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          const blockOrWarn = result.value.policyResult?.decisions.filter(
+            (d) => d.action !== 'allow',
+          );
+          expect(blockOrWarn?.length).toBe(0);
+        }
+      });
+
+      it('surfaces security diagnostics in pipeline diagnostics', () => {
+        const adapter = adapterWithNormalize({
+          normalize: () =>
+            ({
+              irVersion: '0.1.0',
+              identity: { name: 'test-skill', version: '1.0.0' },
+              capabilities: ['file-read'],
+              permissions: [{ resource: 'fs', actions: ['read'] }],
+              source: { format: 'markdown' },
+            }) as NormalizedSkill,
+        });
+        vi.mocked(assessSecurityImpact).mockReturnValue({
+          ok: true,
+          value: {
+            preservedPermissions: [],
+            weakenedPermissions: [
+              {
+                resource: 'fs',
+                requiredActions: ['read'],
+                declaredActions: [],
+                missingActions: ['read'],
+              },
+            ],
+            addedPermissions: [],
+            removedPermissions: [],
+            diagnostics: [
+              { severity: 'warning', message: 'weakened', code: 'COMPAT-003', source: 'fs' },
+            ],
+          },
+        } as Result<SecurityImpactReport, Diagnostic[]>);
+        const pipeline = new ConversionPipeline(selectorWithAdapter(adapter));
+        const result = pipeline.run('src', 'markdown', 'json', { policy: 'safe' });
+        expect(result.ok).toBe(false);
+        const codes = result.ok
+          ? result.value.diagnostics.map((d) => d.code)
+          : result.error.map((d) => d.code);
+        expect(codes).toContain('COMPAT-003');
+      });
     });
   });
 
