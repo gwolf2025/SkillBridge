@@ -37,6 +37,7 @@
 
 | 2026-07-29 | Implement `@skillbridge/installer` executor — atomic install/uninstall/verify/repair with backup, rollback, integrity manifests; 5 CLI subcommands (`install`, `uninstall`, `list`, `verify`, `repair`) | APPROVED — 14/14 AC met, zero findings |
 | 2026-07-29 | Implement permission and trust inspection system — categorize, summarize, compare permissions; PolicyHook callbacks; safety disclaimer | APPROVED — 8/8 AC met, zero findings |
+| 2026-07-29 | Define and implement SkillBridge skill-test specification — 11 assertion types, schemas, validation, valid/invalid fixtures, spec document | APPROVED — 12/12 AC met, zero findings |
 
 ---
 

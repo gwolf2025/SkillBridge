@@ -81,6 +81,14 @@ module.exports = {
     },
 
     {
+      name: 'skill-test-not-adapters',
+      severity: 'error',
+      comment: 'packages/skill-test must not import concrete adapters or commercial',
+      from: { path: 'packages/skill-test' },
+      to: { path: ['adapters', 'commercial'] },
+    },
+
+    {
       name: 'no-adapter-cross-import',
       severity: 'error',
       comment: 'Adapters must not import from other adapters',

@@ -51,6 +51,7 @@
 ## Backlog — Testing and Quality
 
 - [x] **compatibility**: Implement permission and trust inspection system — categorize, summarize, compare permissions; PolicyHook callbacks; safety disclaimer
+- [x] **skill-test**: Implement `@skillbridge/skill-test` — skill-test spec, types, validation, 11 assertion types, fixtures, 19 unit tests
 - [ ] **testing**: Replace all placeholder test suites with meaningful tests
 - [ ] **testing**: Write adapter contract tests — each adapter must pass the same contract suite
 - [ ] **fixtures**: Add fixture SKILL.md files for every source format and edge case

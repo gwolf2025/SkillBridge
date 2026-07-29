@@ -1,0 +1,21 @@
+name: ''
+description: This suite has deliberate validation errors
+tests:
+  - name: ''
+    assertions:
+      - type: unknownType
+      - type: expectText
+        expected: 123
+      - type: humanReview
+        reason: ''
+      - type: snapshot
+        name: ''
+      - type: fileAssert
+        path: 42
+      - type: toolCallAssert
+        tool: 42
+      - type: permissionAssert
+        resource: 'fs:read'
+        actions: 'not-an-array'
+  - name: missing-assertions-test
+    assertions: []

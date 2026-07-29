@@ -1,0 +1,63 @@
+name: Complete Test Suite
+description: A comprehensive test suite exercising all assertion types
+tests:
+  - name: basic-text-output
+    description: Verify the skill produces expected text
+    input:
+      prompt: 'Hello, skill!'
+      fixtures:
+        - fixtures/input.txt
+    assertions:
+      - type: expectText
+        expected: "Hello! I'm ready to help."
+        location: stdout
+      - type: expectJson
+        expected: { 'status': 'ok' }
+        location: output
+      - type: prohibitText
+        pattern: 'error'
+        location: stdout
+      - type: fileAssert
+        path: '/tmp/output.txt'
+        exists: true
+        content: 'expected content'
+      - type: toolCallAssert
+        tool: 'readFile'
+        args: { path: '/tmp/data' }
+        count: 1
+        ordered: true
+      - type: permissionAssert
+        resource: 'fs:read'
+        actions: ['read', 'write']
+        count: 2
+      - type: jsonSchemaAssert
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+        location: output
+      - type: snapshot
+        name: basic-output-snapshot
+        location: stdout
+      - type: expectDiagnostics
+        diagnostics:
+          - severity: info
+            message: skill activated
+            code: SKILL-001
+    humanReview:
+      reason: Verify the skill produces correct greeting format
+      instructions: Check that the greeting is polite
+  - name: conversion-test
+    description: Verify cross-format conversion
+    assertions:
+      - type: conversionAssert
+        fromFormat: markdown
+        toFormat: json
+        assertions:
+          - type: expectText
+            expected: 'converted content'
+  - name: second-test
+    assertions:
+      - type: expectText
+        expected: 'ok'

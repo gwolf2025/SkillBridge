@@ -207,6 +207,15 @@ importers:
         specifier: ^5.7.0
         version: 5.9.3
 
+  packages/skill-test:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@22.20.1)(supports-color@7.2.0)
+
   packages/testing:
     devDependencies:
       typescript:
