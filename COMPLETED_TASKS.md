@@ -42,4 +42,8 @@
 
 ---
 
+| 2026-07-29 | Implement cross-adapter compatibility verification — `CompatibilityMatrix` JSON/Markdown formatter; 33 verification tests (parse-normalize-compile, reparse, round-trip, deterministic, manifest, degradation) across 4 adapters | APPROVED — 9/9 AC met, zero findings |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._

@@ -3,6 +3,8 @@ import type { Capability, CapabilityRequirement, Permission } from '../../ir/src
 
 export type { Capability, Permission, CapabilityRequirement };
 
+export { CompatibilityMatrix } from './matrix.js';
+export type { MatrixResult, MatrixCell } from './matrix.js';
 export { categorizePermission, summarizePermissions, inspectPermissions } from './inspection.js';
 export type {
   PermissionCategory,
