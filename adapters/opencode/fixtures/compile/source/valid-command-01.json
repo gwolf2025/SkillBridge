@@ -1,0 +1,8 @@
+{
+  "kind": "command",
+  "frontmatter": {
+    "description": "Compiled test command",
+    "agent": "builder"
+  },
+  "body": "Run this command when building."
+}

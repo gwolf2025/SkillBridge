@@ -1,0 +1,7 @@
+{
+  "kind": "agent",
+  "frontmatter": {
+    "description": "Compiled test agent"
+  },
+  "body": "Compiled body text."
+}

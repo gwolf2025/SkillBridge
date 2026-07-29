@@ -1,20 +1,28 @@
-# Current Task
+# Task:
 
 **Status:** UNPLANNED
 **Date:**
 
 ## Objective
 
-_No task loaded._
 
----
 
-## Deliverables
+## Acceptance Criteria
 
-_None._
 
----
 
-## Next Steps
+## Required Tests
 
-Run `/sb-plan <task>` to define a new task, or `/sb-next` to proceed to the next backlog item.
+
+
+## Affected Packages
+
+
+
+## Architecture Risks
+
+
+
+## Security Risks
+
+

@@ -21,6 +21,7 @@
 ---
 
 | 2026-07-28 | OpenCode adapter specification and fixtures plan — format schemas, field mapping, permission model, 9 diagnostic codes, 12 testable assumptions, 27-fixture catalog | APPROVED — 0 open findings (spec-only task) |
+| 2026-07-28 | Implement the OpenCode adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; 27 fixtures; 59 unit + 12 integration + 6 roundtrip tests; adapter contract | APPROVED — 2 HIGH + 2 MEDIUM + 3 LOW findings fixed during repair |
 
 ---
 
