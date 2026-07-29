@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import type { Result, Diagnostic } from '../../core/src/index.js';
 import { ok, fail } from '../../core/src/index.js';
 
@@ -22,9 +23,23 @@ export function generate(
 
 export function computeExistingChecksums(
   filePaths: string[],
+  allowedBase?: string,
 ): Result<Record<string, string>, Diagnostic> {
   const result: Record<string, string> = {};
   for (const filePath of filePaths) {
+    if (allowedBase) {
+      const resolved = resolve(filePath);
+      const base = resolve(allowedBase);
+      const rel =
+        resolved.startsWith(base + '\\') || resolved.startsWith(base + '/') || resolved === base;
+      if (!rel) {
+        return fail({
+          severity: 'error',
+          message: `path '${filePath}' is outside allowed base '${allowedBase}'`,
+          code: 'INSTALL-003',
+        });
+      }
+    }
     try {
       const content = readFileSync(filePath, 'utf-8');
       result[filePath] = createHash('sha256').update(content, 'utf-8').digest('hex');

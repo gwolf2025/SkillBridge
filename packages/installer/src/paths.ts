@@ -19,6 +19,21 @@ export function resolveCustomScope(
   customPath: string,
   allowedBase?: string,
 ): Result<string, Diagnostic> {
+  const normalized = normalize(customPath);
+  const parts = normalized.split(sep);
+  let depth = 0;
+  for (const part of parts) {
+    if (part === '..') depth++;
+    else if (part !== '.' && part !== '') depth = 0;
+    if (depth > 1) {
+      return fail({
+        severity: 'error',
+        message: `path traversal detected in '${customPath}': too many '..' segments`,
+        code: 'INSTALL-004',
+      });
+    }
+  }
+
   const resolved = resolve(customPath);
 
   if (allowedBase) {

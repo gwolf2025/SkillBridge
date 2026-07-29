@@ -56,4 +56,8 @@
 
 ---
 
+| 2026-07-29 | Security audit — 11 findings (3 CRITICAL path traversal, 8 HIGH: TOCTOU, disk exhaustion, rollback regex, CLI injection, `..` sanitization, resource discovery, checksum validation, hostname leak); SECURITY_AUDIT.md; regression tests | APPROVED — 8/8 AC met, zero findings |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._

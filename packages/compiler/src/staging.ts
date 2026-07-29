@@ -6,6 +6,9 @@ import { ok, fail } from '../../core/src/index.js';
 import { validateOutputPath } from './safety.js';
 import { normalizeLineEndings } from './deterministic.js';
 
+const MAX_STAGING_FILES = 10000;
+const MAX_STAGING_BYTES = 500 * 1024 * 1024;
+
 export interface StagingOptions {
   outputDir: string;
   prefix?: string;
@@ -22,6 +25,8 @@ export class AtomicOutputWriter {
   private prepared = false;
   private committed = false;
   private rolledBack = false;
+  private fileCount = 0;
+  private totalBytes = 0;
 
   constructor(options: StagingOptions) {
     this.outputDir = resolve(options.outputDir);
@@ -98,13 +103,34 @@ export class AtomicOutputWriter {
       return pathResult;
     }
 
+    if (this.fileCount >= MAX_STAGING_FILES) {
+      return fail({
+        severity: 'error',
+        message: `staging file count limit (${MAX_STAGING_FILES}) exceeded`,
+        code: 'COMPILER-013',
+        source: 'compiler',
+      });
+    }
+
+    this.totalBytes += Buffer.byteLength(content, 'utf-8');
+    if (this.totalBytes > MAX_STAGING_BYTES) {
+      return fail({
+        severity: 'error',
+        message: `staging total size limit (${MAX_STAGING_BYTES} bytes) exceeded`,
+        code: 'COMPILER-013',
+        source: 'compiler',
+      });
+    }
+
     if (this.dryRun) {
+      this.fileCount++;
       return ok(undefined);
     }
 
     try {
       await mkdir(dirname(stagedPath), { recursive: true });
       await writeFile(stagedPath, normalizeLineEndings(content), 'utf-8');
+      this.fileCount++;
       return ok(undefined);
     } catch (err) {
       return fail({
@@ -144,9 +170,24 @@ export class AtomicOutputWriter {
       return ok(undefined);
     }
 
+    // Rename staging to a temp name first, then remove the old output, then rename into place.
+    // This reduces the TOCTOU window compared to rm-then-rename.
+    const tempName = `${this.outputDir}.tmp-${Date.now()}`;
+    try {
+      await rename(this.stagingDir, tempName);
+    } catch (err) {
+      return fail({
+        severity: 'error',
+        message: `Failed to stage rename: ${(err as Error).message}`,
+        code: 'COMPILER-005',
+        source: 'compiler',
+      });
+    }
+
     try {
       await rm(this.outputDir, { recursive: true, force: true });
     } catch {
+      await rename(tempName, this.stagingDir);
       return fail({
         severity: 'error',
         message: `Failed to remove existing output directory: ${this.outputDir}`,
@@ -156,10 +197,11 @@ export class AtomicOutputWriter {
     }
 
     try {
-      await rename(this.stagingDir, this.outputDir);
+      await rename(tempName, this.outputDir);
       this.committed = true;
       return ok(undefined);
     } catch (err) {
+      await rename(tempName, this.stagingDir);
       return fail({
         severity: 'error',
         message: `Failed to commit staging to ${this.outputDir}: ${(err as Error).message}`,

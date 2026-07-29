@@ -8,7 +8,7 @@ import {
   cpSync,
   mkdirSync,
 } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve, relative, normalize } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
 import type { Adapter, ConversionContext, Diagnostic } from '../../adapter-sdk/src/index.js';
@@ -48,6 +48,31 @@ function sha256(content: string): string {
   return createHash('sha256').update(content, 'utf-8').digest('hex');
 }
 
+function validatePathInDir(
+  targetPath: string,
+  allowedDir: string,
+  label: string,
+  diagnostics: Diagnostic[],
+): boolean {
+  const resolved = resolve(targetPath);
+  const allowed = resolve(allowedDir);
+  const rel = relative(allowed, resolved);
+  if (rel.startsWith('..') || normalize(rel).startsWith('..')) {
+    diagnostics.push({
+      severity: 'error',
+      message: `path traversal blocked: ${label} '${targetPath}' is outside '${allowedDir}'`,
+      code: 'INSTALL-012',
+    });
+    return false;
+  }
+  return true;
+}
+
+interface BackupRecord {
+  sourcePath: string;
+  backupPath: string;
+}
+
 function readPlanOutput(plan: ResolvedInstallPlan): Record<string, string> {
   const files: Record<string, string> = {};
   for (let i = 0; i < plan.steps.length; i++) {
@@ -73,10 +98,7 @@ export function execute(opts: ExecutorOptions): Result<ExecutorResult, Diagnosti
   }
 
   if (dryRun) {
-    return ok({
-      action,
-      success: true,
-    });
+    return ok({ action, success: true });
   }
 
   if (!adapter.install) {
@@ -89,12 +111,19 @@ export function execute(opts: ExecutorOptions): Result<ExecutorResult, Diagnosti
   }
 
   const stagingDir = mkdtempSync(join(tmpdir(), 'sb-inst-exec-'));
-  const backupPaths: string[] = [];
+  const backups: BackupRecord[] = [];
   let committed = false;
 
   try {
     const plannedFiles = readPlanOutput(plan);
     const plannedDirs = plan.destinationPaths ?? [];
+
+    // Validate all destination paths before any writes
+    for (const dp of plannedDirs) {
+      if (!validatePathInDir(dp, stagingDir, 'destination path', diagnostics)) {
+        return { ok: false, error: diagnostics };
+      }
+    }
 
     const manifestResult = generateManifest(plannedFiles);
     if (!manifestResult.ok) {
@@ -104,6 +133,9 @@ export function execute(opts: ExecutorOptions): Result<ExecutorResult, Diagnosti
     const manifest = manifestResult.value;
 
     for (const [relPath, content] of Object.entries(plannedFiles)) {
+      if (!validatePathInDir(relPath, '', 'planned file path', diagnostics)) {
+        return { ok: false, error: diagnostics };
+      }
       const stagePath = join(stagingDir, relPath);
       mkdirSync(dirname(stagePath), { recursive: true });
       writeFileSync(stagePath, content, 'utf-8');
@@ -116,7 +148,7 @@ export function execute(opts: ExecutorOptions): Result<ExecutorResult, Diagnosti
             const bDir = dirname(be.backupPath);
             mkdirSync(bDir, { recursive: true });
             cpSync(be.sourcePath, be.backupPath, { recursive: true });
-            backupPaths.push(be.backupPath);
+            backups.push({ sourcePath: be.sourcePath, backupPath: resolve(be.backupPath) });
           }
         }
       }
@@ -127,8 +159,7 @@ export function execute(opts: ExecutorOptions): Result<ExecutorResult, Diagnosti
 
       for (const [relPath] of Object.entries(plannedFiles)) {
         const sourcePath = join(stagingDir, relPath);
-        const destIdx = 0;
-        const destDir = plannedDirs[destIdx] ?? '.';
+        const destDir = plannedDirs[0] ?? '.';
         const destPath = join(destDir, relPath);
         mkdirSync(dirname(destPath), { recursive: true });
         renameSync(sourcePath, destPath);
@@ -138,33 +169,31 @@ export function execute(opts: ExecutorOptions): Result<ExecutorResult, Diagnosti
     } else if (action === 'uninstall') {
       for (const dp of plannedDirs) {
         if (existsSync(dp)) {
-          const backupPath = `${dp}.uninstall-backup`;
+          const backupPath = resolve(`${dp}.uninstall-backup`);
           cpSync(dp, backupPath, { recursive: true });
-          backupPaths.push(backupPath);
+          backups.push({ sourcePath: dp, backupPath });
           rmSync(dp, { recursive: true, force: true });
         }
       }
     }
 
     committed = true;
-
     rmSync(stagingDir, { recursive: true, force: true });
 
     return ok({
       action,
       success: true,
       manifest,
-      backupPaths: backupPaths.length > 0 ? backupPaths : undefined,
+      backupPaths: backups.length > 0 ? backups.map((b) => b.backupPath) : undefined,
     });
   } catch (e) {
     if (!committed) {
-      for (const bp of backupPaths) {
+      for (const b of backups) {
         try {
-          const orig = bp.replace(/\.(backup|uninstall-backup)\..*$/, '');
-          if (existsSync(bp)) {
-            const parentDir = dirname(orig);
+          if (existsSync(b.backupPath)) {
+            const parentDir = dirname(b.sourcePath);
             mkdirSync(parentDir, { recursive: true });
-            renameSync(bp, orig);
+            renameSync(b.backupPath, b.sourcePath);
           }
         } catch {
           // best-effort rollback
@@ -251,6 +280,12 @@ export function repair(
           ([, hash]) => hash === check.expectedChecksum,
         )?.[0];
         if (relPath && plannedFiles[relPath]) {
+          if (!validatePathInDir(relPath, '', 'repair relPath', diagnostics)) {
+            continue;
+          }
+          if (!validatePathInDir(check.filePath, '', 'repair destination', diagnostics)) {
+            continue;
+          }
           const stagePath = join(stagingDir, relPath);
           mkdirSync(dirname(stagePath), { recursive: true });
           writeFileSync(stagePath, plannedFiles[relPath], 'utf-8');

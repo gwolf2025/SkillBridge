@@ -58,6 +58,7 @@
 - [x] **examples**: Create 5 Apache-2.0 example skills (hello-world, file-organizer, secret-rotator, code-analyzer, vendor-hooks) with demonstration labeling, tests, and exports
 - [x] **docs**: Create comprehensive developer guide (13 sections: build, test, debug, extend, contribute; Windows/WSL; architecture; 15 ACs)
 - [x] **docs/cli**: Create CLI usage documentation — 19 sections covering all 13 implemented commands, error codes, policies, permissions, dry-run, rollback, troubleshooting
+- [x] **security**: Security audit — 11 findings (3 CRITICAL, 8 HIGH) fixed; SECURITY_AUDIT.md; regression tests
 - [ ] **testing**: Replace all placeholder test suites with meaningful tests
 - [ ] **testing**: Write adapter contract tests — each adapter must pass the same contract suite
 - [ ] **fixtures**: Add fixture SKILL.md files for every source format and edge case

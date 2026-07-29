@@ -248,4 +248,10 @@ describe('run', () => {
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain('IR Capability Vocabulary');
   });
+
+  it('uninstall rejects path traversal in name', async () => {
+    const result = await run(['node', 'cli.js', 'uninstall', '../../etc/passwd']);
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('invalid skill name');
+  });
 });

@@ -1213,6 +1213,11 @@ async function runCliUninstall(
   }
 
   const adapters = [adapterPortable, adapterClaude, adapterOpencode, adapterCodex];
+  if (name.includes('..') || name.includes('/') || name.includes('\\')) {
+    const err: CliError = { code: 'CLI-021', message: `invalid skill name '${name}'` };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
   const dirs = adapters.map(() => `.agents/skills/${name}`);
   const listResult = listInstalled(adapters, dirs);
 

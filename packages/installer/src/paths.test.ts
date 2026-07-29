@@ -43,4 +43,15 @@ describe('resolveCustomScope', () => {
     const result = resolveCustomScope('/safe/dir/sub', '/safe/dir');
     expect(result.ok).toBe(true);
   });
+
+  it('rejects path with excessive .. traversal', () => {
+    const result = resolveCustomScope('a/../../../../etc/passwd');
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('INSTALL-004');
+  });
+
+  it('rejects deeply nested .. traversal', () => {
+    const result = resolveCustomScope('a/b/../../../c/../../etc');
+    expect(result.ok).toBe(false);
+  });
 });
