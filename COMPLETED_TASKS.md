@@ -20,4 +20,8 @@
 
 ---
 
+| 2026-07-28 | OpenCode adapter specification and fixtures plan — format schemas, field mapping, permission model, 9 diagnostic codes, 12 testable assumptions, 27-fixture catalog | APPROVED — 0 open findings (spec-only task) |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._

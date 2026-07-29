@@ -18,7 +18,7 @@
 - [x] **compatibility**: Define `CapabilityMap`, `compareCapabilities()`, `CompatibilityReport`, `assessSecurityImpact()`
   - [x] **compatibility/reports**: Expand `CompatibilityLevel` with `partial`/`unknown`, add `SemanticDegradation`/`MissingResource`/`Assumption` types, `CompatibilityReportFormatter`, `generateCompatibilityReport()`, security integration, unknown safeguard
 - [x] **fs**: Implement safe filesystem loader with path safety, symlink protection, size/count limits, and file classification
-- [ ] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
+- [x] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
 - [x] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
   - [x] **conversion/normalize**: Implement source-document-to-IR normalization pipeline with provenance, deterministic merge, body-section mapping, conflict detection, and extension preservation
   - [x] **conversion/orchestrator**: Implement full pipeline orchestration with compatibility analysis, policy enforcement, manifest generation, output verification, field provenance tracking
@@ -30,6 +30,7 @@
 
 - [x] **adapter/portable**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
 - [ ] **adapter/opencode**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
+  - [x] **adapter/opencode/research**: Produce specification, field mapping, permission model, fixtures plan. See `adapters/opencode/specification.md` and `fixtures-plan.md`.
 - [ ] **adapter/claude**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
 - [ ] **adapter/codex**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
 
