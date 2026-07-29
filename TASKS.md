@@ -50,6 +50,7 @@
 
 ## Backlog — Testing and Quality
 
+- [x] **compatibility**: Implement permission and trust inspection system — categorize, summarize, compare permissions; PolicyHook callbacks; safety disclaimer
 - [ ] **testing**: Replace all placeholder test suites with meaningful tests
 - [ ] **testing**: Write adapter contract tests — each adapter must pass the same contract suite
 - [ ] **fixtures**: Add fixture SKILL.md files for every source format and edge case

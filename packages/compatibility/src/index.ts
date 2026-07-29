@@ -3,6 +3,17 @@ import type { Capability, CapabilityRequirement, Permission } from '../../ir/src
 
 export type { Capability, Permission, CapabilityRequirement };
 
+export { categorizePermission, summarizePermissions, inspectPermissions } from './inspection.js';
+export type {
+  PermissionCategory,
+  PermissionSummary,
+  PermissionComparison,
+  ComparisonKind,
+  PolicyDecision,
+  PolicyHook,
+  PermissionInspectionReport,
+} from './inspection.js';
+
 export type CompatibilityLevel =
   'native' | 'emulated' | 'missing' | 'degraded' | 'partial' | 'unknown';
 
