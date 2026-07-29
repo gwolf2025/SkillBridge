@@ -34,6 +34,7 @@
 - [x] **adapter/claude**: Implement full adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; 32 fixtures; 61 unit + 11 integration + 9 roundtrip tests + contract; 3 LOW findings
   - [x] **adapter/claude/research**: Document source format, frontmatter fields, discovery paths, invocation, permissions, unsupported behavior, fixture plan, specs, ACs. See `adapters/claude/specification.md` and `fixtures-plan.md`.
 - [ ] **adapter/codex**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
+  - [x] **adapter/codex/research**: Document source format, frontmatter fields, discovery paths, invocation, permissions, `agents/openai.yaml` companion file, cross-agent comparison, limitations, unknowns, fixture plan. See `adapters/codex/specification.md` and `fixtures-plan.md`.
 
 ## Backlog — CLI and Integration
 

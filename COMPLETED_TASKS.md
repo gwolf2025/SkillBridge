@@ -24,6 +24,7 @@
 | 2026-07-28 | Implement the OpenCode adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; 27 fixtures; 59 unit + 12 integration + 6 roundtrip tests; adapter contract | APPROVED — 2 HIGH + 2 MEDIUM + 3 LOW findings fixed during repair |
 | 2026-07-28 | Research and document Claude Code Agent Skills format — specification, frontmatter fields, discovery paths, permissions, unsupported behavior, 29-fixture plan, 10 ACs | APPROVED — 3 LOW findings (research-only task) |
 | 2026-07-29 | Implement the Claude Code adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; 32 fixtures; 61 unit + 11 integration + 9 roundtrip tests; adapter contract; 81 total tests passing all 9 verify gates | APPROVED — 13/13 AC met, 3 LOW findings |
+| 2026-07-29 | Research and document OpenAI Codex Agent Skills format — specification (470 lines, 10 sections), fixture plan (16 fixtures, 15 testable assumptions), cross-agent comparison, 7 limitations, 5 unknowns | APPROVED — 10/10 AC met, 1 LOW finding (editorial) |
 
 ---
 
