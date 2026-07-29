@@ -56,6 +56,7 @@
 - [x] **compatibility/matrix**: Implement `CompatibilityMatrix` — JSON/Markdown matrix output, cross-adapter verification (33 tests across 4 adapters)
 - [x] **registry/cache**: Implement `SkillPackageCache` — local package registry with add, list, search, get, remove, verify, adapter compatibility, atomic index persistence
 - [x] **examples**: Create 5 Apache-2.0 example skills (hello-world, file-organizer, secret-rotator, code-analyzer, vendor-hooks) with demonstration labeling, tests, and exports
+- [x] **docs**: Create comprehensive developer guide (13 sections: build, test, debug, extend, contribute; Windows/WSL; architecture; 15 ACs)
 - [ ] **testing**: Replace all placeholder test suites with meaningful tests
 - [ ] **testing**: Write adapter contract tests — each adapter must pass the same contract suite
 - [ ] **fixtures**: Add fixture SKILL.md files for every source format and edge case
@@ -66,4 +67,5 @@
 - [ ] **runtime**: Local execution sandbox
 - [ ] **registry**: Remote registry protocol
 - [ ] **community**: Adapter plugin API for third-party adapters
+- [x] **docs**: Comprehensive developer guide (building, testing, debugging, extending, contributing, Windows/WSL, architecture, adapters, fixtures, conversion policies, permission preservation, test strategy, release boundaries, troubleshooting)
 - [ ] **docs**: End-to-end tutorial and migration guides

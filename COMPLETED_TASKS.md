@@ -48,4 +48,8 @@
 
 ---
 
+| 2026-07-29 | Create comprehensive developer guide — 13 sections covering build, test, debug, extend, contribute, Windows/WSL, architecture, adapter dev, fixtures, conversion policies, permissions, release boundaries, troubleshooting | APPROVED — 15/15 AC met, zero findings |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._
