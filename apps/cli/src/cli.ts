@@ -9,6 +9,7 @@ import type { Diagnostic, AdapterManifest } from '../../../packages/adapter-sdk/
 import { parseSkillMd, parseSkillbridgeYaml } from '../../../packages/parser/src/index.js';
 import { CAPABILITY_VOCABULARY } from '../../../packages/ir/src/index.js';
 import type { Capability } from '../../../packages/ir/src/index.js';
+import { AtomicOutputWriter } from '../../../packages/compiler/src/index.js';
 import adapterPortable from '../../../adapters/portable/src/index.js';
 import adapterClaude from '../../../adapters/claude/src/index.js';
 import adapterOpencode from '../../../adapters/opencode/src/index.js';
@@ -34,6 +35,9 @@ export interface CliOptions {
   format?: string;
   detail?: boolean;
   adapter?: string;
+  outputDir?: string;
+  dryRun?: boolean;
+  overwrite?: boolean;
   help: boolean;
   version: boolean;
 }
@@ -135,6 +139,15 @@ export function parseArgs(argv: string[]): CliOptions {
     } else if (arg === '--adapter' && i + 1 < argv.length) {
       i++;
       opts.adapter = argv[i];
+    } else if (arg === '--dry-run') {
+      opts.dryRun = true;
+    } else if (arg === '--overwrite') {
+      opts.overwrite = true;
+    } else if (arg.startsWith('--output-dir=')) {
+      opts.outputDir = arg.slice(13);
+    } else if (arg === '--output-dir' && i + 1 < argv.length) {
+      i++;
+      opts.outputDir = argv[i];
     } else if (arg.startsWith('-')) {
       positional.push(arg);
     } else {
@@ -307,7 +320,8 @@ export function printUsage(): string {
     'Usage: skillbridge [command] [options] [arguments]',
     '',
     'Commands:',
-    '  convert          Convert a skill between vendor formats',
+    '  convert          Convert a skill file between vendor formats',
+    '  compile          Compile a skill package directory',
     '  parse            Parse and display SKILL.md structure',
     '  validate         Validate a skill package directory',
     '  inspect          Show full skill package metadata',
@@ -321,9 +335,12 @@ export function printUsage(): string {
     '  --version, -v    Print version',
     '  --json           Output in JSON format',
     '',
-    'Convert flags:',
+    'Convert/Compile flags:',
     '  --from <format>  Source format (e.g. markdown)',
     '  --to <format>    Target format (e.g. markdown)',
+    '  --output-dir <path>  Directory for compiled output',
+    '  --dry-run        Preview without writing files',
+    '  --overwrite      Allow overwriting existing output directory',
     '  --policy <mode>  Policy mode: strict, safe (default), permissive',
     '  --source-adapter <name>  Preferred source adapter',
     '  --target-adapter <name>  Preferred target adapter',
@@ -363,7 +380,9 @@ export async function run(argv: string[]): Promise<{ exitCode: ExitCode; output:
 
   switch (opts.command) {
     case 'convert':
-      return runConvert(opts, registry);
+      return await runConvert(opts, registry);
+    case 'compile':
+      return await runCompile(opts, registry);
     case 'list-adapters':
     case 'adapters':
       return runAdapters(opts, registry);
@@ -387,10 +406,10 @@ export async function run(argv: string[]): Promise<{ exitCode: ExitCode; output:
   }
 }
 
-function runConvert(
+async function runConvert(
   opts: CliOptions,
   registry: LocalAdapterRegistry,
-): { exitCode: ExitCode; output: string } {
+): Promise<{ exitCode: ExitCode; output: string }> {
   const from = opts.from || 'markdown';
   const to = opts.to || 'markdown';
   const sourceArg = opts.args[0];
@@ -435,6 +454,54 @@ function runConvert(
   }
 
   const conv = result.value;
+
+  if (opts.outputDir) {
+    const od = resolve(opts.outputDir);
+    if (existsSync(od) && !opts.overwrite && !opts.dryRun) {
+      const err: CliError = {
+        code: 'CLI-017',
+        message: `output directory already exists: ${od}. Use --overwrite to overwrite.`,
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+
+    const writer = new AtomicOutputWriter({ outputDir: od, dryRun: opts.dryRun });
+    const prepResult = await writer.prepare();
+    if (!prepResult.ok) {
+      const err: CliError = {
+        code: 'CLI-018',
+        message: prepResult.error.message,
+        diagnostics: [prepResult.error],
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+
+    const outputStr = typeof conv.output === 'string' ? conv.output : JSON.stringify(conv.output);
+    const writeResult = await writer.writeFile('output', outputStr);
+    if (!writeResult.ok) {
+      const err: CliError = {
+        code: 'CLI-018',
+        message: writeResult.error.message,
+        diagnostics: [writeResult.error],
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+
+    const commitResult = await writer.commit();
+    if (!commitResult.ok) {
+      const err: CliError = {
+        code: 'CLI-018',
+        message: commitResult.error.message,
+        diagnostics: [commitResult.error],
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+  }
+
   if (opts.json) {
     return {
       exitCode: 0,
@@ -451,7 +518,138 @@ function runConvert(
     };
   }
 
-  return { exitCode: 0, output: formatConversionResult(conv) };
+  let humanOutput = formatConversionResult(conv);
+  if (opts.outputDir && !opts.dryRun) {
+    humanOutput += `\nOutput written to: ${resolve(opts.outputDir)}`;
+  } else if (opts.outputDir && opts.dryRun) {
+    humanOutput += `\nDry-run: would write to ${resolve(opts.outputDir)}`;
+  }
+  return { exitCode: 0, output: humanOutput };
+}
+
+async function runCompile(
+  opts: CliOptions,
+  registry: LocalAdapterRegistry,
+): Promise<{ exitCode: ExitCode; output: string }> {
+  const dirArg = opts.args[0];
+  if (!dirArg) {
+    const err: CliError = {
+      code: 'CLI-019',
+      message: 'missing directory argument for compile command',
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const normalizedPath = resolve(normalize(dirArg));
+  if (!existsSync(normalizedPath)) {
+    const err: CliError = { code: 'CLI-014', message: `directory not found: ${dirArg}` };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const skillMdPath = join(normalizedPath, 'SKILL.md');
+  if (!existsSync(skillMdPath)) {
+    const err: CliError = { code: 'CLI-014', message: `missing SKILL.md in ${normalizedPath}` };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const content = readFileSync(skillMdPath, 'utf-8');
+  const to = opts.to || 'markdown';
+  const from = opts.from || 'markdown';
+  const pipeline = new ConversionPipeline(registry);
+  const policy = (opts.policy as PolicyMode) || 'safe';
+
+  const result = pipeline.run(content, from, to, {
+    policy,
+    sourceAdapterName: opts.sourceAdapter,
+    targetAdapterName: opts.targetAdapter,
+  });
+
+  if (!result.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: result.error.find((d) => d.severity === 'error')?.message || 'compile failed',
+      diagnostics: result.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const conv = result.value;
+
+  if (opts.outputDir) {
+    const od = resolve(opts.outputDir);
+    if (existsSync(od) && !opts.overwrite && !opts.dryRun) {
+      const err: CliError = {
+        code: 'CLI-017',
+        message: `output directory already exists: ${od}. Use --overwrite to overwrite.`,
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+
+    const writer = new AtomicOutputWriter({ outputDir: od, dryRun: opts.dryRun });
+    const prepResult = await writer.prepare();
+    if (!prepResult.ok) {
+      const err: CliError = {
+        code: 'CLI-018',
+        message: prepResult.error.message,
+        diagnostics: [prepResult.error],
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+
+    const outputStr = typeof conv.output === 'string' ? conv.output : JSON.stringify(conv.output);
+    const writeResult = await writer.writeFile('output', outputStr);
+    if (!writeResult.ok) {
+      const err: CliError = {
+        code: 'CLI-018',
+        message: writeResult.error.message,
+        diagnostics: [writeResult.error],
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+
+    const commitResult = await writer.commit();
+    if (!commitResult.ok) {
+      const err: CliError = {
+        code: 'CLI-018',
+        message: commitResult.error.message,
+        diagnostics: [commitResult.error],
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+  }
+
+  if (opts.json) {
+    return {
+      exitCode: 0,
+      output: jsonResult(true, {
+        output: conv.output,
+        source: normalizedPath,
+        diagnostics: conv.diagnostics.length > 0 ? conv.diagnostics : undefined,
+        compatibility: conv.compatibility,
+        securityImpact: conv.securityImpact,
+        provenance: conv.provenance,
+        manifest: conv.manifest,
+        policyResult: conv.policyResult,
+        fieldProvenances: conv.fieldProvenances,
+      }),
+    };
+  }
+
+  let humanOutput = `Compiled: ${normalizedPath}\n${formatConversionResult(conv)}`;
+  if (opts.outputDir && !opts.dryRun) {
+    humanOutput += `\nOutput written to: ${resolve(opts.outputDir)}`;
+  } else if (opts.outputDir && opts.dryRun) {
+    humanOutput += `\nDry-run: would write to ${resolve(opts.outputDir)}`;
+  }
+  return { exitCode: 0, output: humanOutput };
 }
 
 function runParse(opts: CliOptions): { exitCode: ExitCode; output: string } {

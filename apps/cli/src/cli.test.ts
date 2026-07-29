@@ -73,6 +73,27 @@ describe('parseArgs', () => {
     expect(result.command).toBe('convert');
     expect(result.args).toEqual(['my-file.md']);
   });
+
+  it('parses --output-dir flag', () => {
+    const result = parseArgs(['node', 'cli.js', 'convert', '--output-dir', './out', 'file.md']);
+    expect(result.outputDir).toBe('./out');
+  });
+
+  it('parses --dry-run flag', () => {
+    const result = parseArgs(['node', 'cli.js', 'convert', '--dry-run', 'file.md']);
+    expect(result.dryRun).toBe(true);
+  });
+
+  it('parses --overwrite flag', () => {
+    const result = parseArgs(['node', 'cli.js', 'convert', '--overwrite', 'file.md']);
+    expect(result.overwrite).toBe(true);
+  });
+
+  it('parses compile command', () => {
+    const result = parseArgs(['node', 'cli.js', 'compile', './dir']);
+    expect(result.command).toBe('compile');
+    expect(result.args).toEqual(['./dir']);
+  });
 });
 
 describe('printUsage', () => {
