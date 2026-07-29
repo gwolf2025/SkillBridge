@@ -52,4 +52,8 @@
 
 ---
 
+| 2026-07-29 | Create comprehensive CLI usage documentation — 19 sections covering all 13 commands, exit codes, policies, permissions, dry-run, rollback, troubleshooting, error codes (CLI-001 through CLI-021) | APPROVED — 15/15 AC met, zero findings |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._
