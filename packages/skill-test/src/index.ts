@@ -475,6 +475,21 @@ export function validateSkillTest(value: unknown): Result<SkillTestDefinition, D
   return ok(result);
 }
 
+export { runSuite } from './runner.js';
+export type { SuiteResult, TestResult, TestStatus } from './runner.js';
+export { evaluateAssertion } from './assertion-evaluator.js';
+export type { AssertionResult, AssertionStatus } from './assertion-evaluator.js';
+export {
+  createMockEnvironment,
+  recordToolCall,
+  recordPermissionRequest,
+  appendOutput,
+} from './mock-environment.js';
+export type { MockOutput, ToolCallRecord } from './mock-environment.js';
+export { generateJsonReport, writeJsonReport } from './reporters/json-reporter.js';
+export { JSON_DISCLAIMER } from './reporters/json-reporter.js';
+export { generateJunitXml, writeJunitXml } from './reporters/junit-reporter.js';
+
 export function validateSkillTestSuite(value: unknown): Result<SkillTestSuite, Diagnostic[]> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return fail([
