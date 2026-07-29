@@ -108,3 +108,10 @@ export { InMemoryTestAdapter } from './adapter.js';
 export type { InMemoryTestAdapterOptions } from './adapter.js';
 export { describeAdapterContract } from './contract.js';
 export type { AdapterContractOptions } from './contract.js';
+export {
+  HELLO_WORLD_SKILL,
+  FILE_ORGANIZER_SKILL,
+  SECRET_ROTATOR_SKILL,
+  CODE_ANALYZER_SKILL,
+  VENDOR_HOOKS_SKILL,
+} from './examples.js';

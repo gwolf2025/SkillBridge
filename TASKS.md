@@ -55,6 +55,7 @@
 - [x] **skill-test/runner**: Implement mock test runner — temp-isolated execution, 11 assertion evaluators, JSON/JUnit reporters, disclaimer; 27 new tests
 - [x] **compatibility/matrix**: Implement `CompatibilityMatrix` — JSON/Markdown matrix output, cross-adapter verification (33 tests across 4 adapters)
 - [x] **registry/cache**: Implement `SkillPackageCache` — local package registry with add, list, search, get, remove, verify, adapter compatibility, atomic index persistence
+- [x] **examples**: Create 5 Apache-2.0 example skills (hello-world, file-organizer, secret-rotator, code-analyzer, vendor-hooks) with demonstration labeling, tests, and exports
 - [ ] **testing**: Replace all placeholder test suites with meaningful tests
 - [ ] **testing**: Write adapter contract tests — each adapter must pass the same contract suite
 - [ ] **fixtures**: Add fixture SKILL.md files for every source format and edge case

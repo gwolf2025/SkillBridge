@@ -1,0 +1,7 @@
+name: code-analyzer
+version: 1.0.0
+description: DEMONSTRATION ONLY — Not intended for production use.
+author: skillbridge
+license: Apache-2.0
+scripts:
+  analyze: node scripts/analyze.js
