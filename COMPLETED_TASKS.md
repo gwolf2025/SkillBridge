@@ -35,4 +35,8 @@
 
 ---
 
+| 2026-07-29 | Implement `@skillbridge/installer` executor — atomic install/uninstall/verify/repair with backup, rollback, integrity manifests; 5 CLI subcommands (`install`, `uninstall`, `list`, `verify`, `repair`) | APPROVED — 14/14 AC met, zero findings |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._

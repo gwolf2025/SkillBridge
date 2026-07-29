@@ -6,10 +6,17 @@ import { ConversionPipeline } from '../../../packages/conversion/src/index.js';
 import type { ConversionResult, PolicyMode } from '../../../packages/conversion/src/index.js';
 import { LocalAdapterRegistry } from '../../../packages/registry-local/src/index.js';
 import type { Diagnostic, AdapterManifest } from '../../../packages/adapter-sdk/src/index.js';
+import type { ResolvedInstallPlan } from '../../../packages/installer/src/index.js';
 import { parseSkillMd, parseSkillbridgeYaml } from '../../../packages/parser/src/index.js';
 import { CAPABILITY_VOCABULARY } from '../../../packages/ir/src/index.js';
 import type { Capability } from '../../../packages/ir/src/index.js';
 import { AtomicOutputWriter } from '../../../packages/compiler/src/index.js';
+import {
+  plan as installPlan,
+  execute,
+  listInstalled,
+  formatDryRun,
+} from '../../../packages/installer/src/index.js';
 import adapterPortable from '../../../adapters/portable/src/index.js';
 import adapterClaude from '../../../adapters/claude/src/index.js';
 import adapterOpencode from '../../../adapters/opencode/src/index.js';
@@ -38,6 +45,7 @@ export interface CliOptions {
   outputDir?: string;
   dryRun?: boolean;
   overwrite?: boolean;
+  force?: boolean;
   help: boolean;
   version: boolean;
 }
@@ -143,6 +151,8 @@ export function parseArgs(argv: string[]): CliOptions {
       opts.dryRun = true;
     } else if (arg === '--overwrite') {
       opts.overwrite = true;
+    } else if (arg === '--force') {
+      opts.force = true;
     } else if (arg.startsWith('--output-dir=')) {
       opts.outputDir = arg.slice(13);
     } else if (arg === '--output-dir' && i + 1 < argv.length) {
@@ -329,6 +339,11 @@ export function printUsage(): string {
     '  list-adapters    Alias for adapters',
     '  capabilities     List IR capability vocabulary',
     '  doctor           Run local environment diagnostics',
+    '  install          Install a skill from a file',
+    '  uninstall        Uninstall a skill by name',
+    '  list             List installed skills',
+    '  verify           Verify integrity of installed skills',
+    '  repair           Repair corrupted installed skills',
     '',
     'Global flags:',
     '  --help, -h       Show this help message',
@@ -349,6 +364,9 @@ export function printUsage(): string {
     '  --format <fmt>   Filter by source/target format',
     '  --detail         Show detailed adapter information',
     '',
+    'Install/Uninstall flags:',
+    '  --force          Overwrite existing files without confirmation',
+    '',
     'Capabilities flags:',
     '  --adapter <name> Show capabilities for a specific adapter',
     '',
@@ -361,6 +379,13 @@ export function printUsage(): string {
     '  skillbridge adapters --detail',
     '  skillbridge capabilities --adapter adapter-portable',
     '  skillbridge doctor',
+    '  skillbridge install my-skill.md',
+    '  skillbridge install --dry-run my-skill.md',
+    '  skillbridge uninstall my-skill',
+    '  skillbridge list',
+    '  skillbridge list --json',
+    '  skillbridge verify',
+    '  skillbridge repair my-skill',
   ].join('\n');
 }
 
@@ -396,6 +421,16 @@ export async function run(argv: string[]): Promise<{ exitCode: ExitCode; output:
       return runCapabilities(opts, registry);
     case 'doctor':
       return runDoctor(opts, registry);
+    case 'install':
+      return await runCliInstall(opts, registry);
+    case 'uninstall':
+      return await runCliUninstall(opts, registry);
+    case 'list':
+      return runCliList(opts, registry);
+    case 'verify':
+      return await runCliVerify(opts, registry);
+    case 'repair':
+      return await runCliRepair(opts, registry);
     default: {
       const err: CliError = { code: 'CLI-001', message: `unknown command '${opts.command}'` };
       if (opts.json) {
@@ -1087,6 +1122,261 @@ function runDoctor(
   }
 
   return { exitCode: 0, output: lines.join('\n') };
+}
+
+async function runCliInstall(
+  opts: CliOptions,
+  registry: LocalAdapterRegistry,
+): Promise<{ exitCode: ExitCode; output: string }> {
+  const sourceArg = opts.args[0];
+  if (!sourceArg) {
+    const err: CliError = { code: 'CLI-020', message: 'missing file argument for install command' };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  let source: string;
+  try {
+    source = readSourceSource(sourceArg);
+  } catch (e) {
+    const err: CliError = {
+      code: 'CLI-004',
+      message: `cannot read source: ${e instanceof Error ? e.message : String(e)}`,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const from = opts.from || 'markdown';
+  const sourceResult = registry.selectSourceAdapter(source, from, opts.sourceAdapter);
+  if (!sourceResult.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message:
+        sourceResult.error.find((d) => d.severity === 'error')?.message || 'no adapter found',
+      diagnostics: sourceResult.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const adapter = sourceResult.value;
+  const parsed = adapter.parse(source);
+  const ctx = { source, normalized: parsed, manifest: adapter.manifest };
+
+  const planResult = installPlan(adapter, ctx, {
+    overwritePolicy: opts.force ? 'always' : 'never',
+    baseDir: opts.args[1],
+  });
+  if (!planResult.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: 'install plan failed',
+      diagnostics: planResult.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const plan = planResult.value;
+
+  if (opts.dryRun) {
+    return { exitCode: 0, output: formatDryRun({ plan, adapterName: adapter.manifest.name }) };
+  }
+
+  const execResult = execute({ adapter, context: ctx, plan, force: opts.force, action: 'install' });
+  if (!execResult.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: 'install failed',
+      diagnostics: execResult.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  if (opts.json) {
+    return { exitCode: 0, output: jsonResult(true, execResult.value) };
+  }
+  return { exitCode: 0, output: `Installed: ${sourceArg}` };
+}
+
+async function runCliUninstall(
+  opts: CliOptions,
+  _registry: LocalAdapterRegistry,
+): Promise<{ exitCode: ExitCode; output: string }> {
+  const name = opts.args[0];
+  if (!name) {
+    const err: CliError = { code: 'CLI-020', message: 'missing skill name for uninstall command' };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const adapters = [adapterPortable, adapterClaude, adapterOpencode, adapterCodex];
+  const dirs = adapters.map(() => `.agents/skills/${name}`);
+  const listResult = listInstalled(adapters, dirs);
+
+  if (!listResult.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: 'list failed',
+      diagnostics: listResult.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const found = listResult.value.find((s) => s.name === name);
+  if (!found) {
+    const err: CliError = { code: 'CLI-021', message: `skill '${name}' not found` };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const adapter = _registry.get(found.adapterName);
+  if (!adapter) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: `adapter '${found.adapterName}' not registered`,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const plan: ResolvedInstallPlan = {
+    steps: [`Uninstall ${name}`],
+    scope: 'custom',
+    destinationPaths: [found.path],
+  };
+  const ctx = { source: '', normalized: {}, manifest: adapter.manifest };
+
+  const execResult = execute({
+    adapter,
+    context: ctx,
+    plan,
+    force: opts.force,
+    action: 'uninstall',
+  });
+  if (!execResult.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: 'uninstall failed',
+      diagnostics: execResult.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  if (opts.json) {
+    return { exitCode: 0, output: jsonResult(true, execResult.value) };
+  }
+  return { exitCode: 0, output: `Uninstalled: ${name}` };
+}
+
+function runCliList(
+  opts: CliOptions,
+  _registry: LocalAdapterRegistry,
+): { exitCode: ExitCode; output: string } {
+  const adapters = [adapterPortable, adapterClaude, adapterOpencode, adapterCodex];
+  const dirs = ['.agents/skills'];
+  const listResult = listInstalled(adapters, dirs);
+
+  if (!listResult.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: 'list failed',
+      diagnostics: listResult.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  if (opts.json) {
+    return { exitCode: 0, output: jsonResult(true, listResult.value) };
+  }
+
+  if (listResult.value.length === 0) {
+    return { exitCode: 0, output: 'No installed skills found.' };
+  }
+
+  const header = 'Name'.padEnd(22) + 'Adapter'.padEnd(22) + 'Status'.padEnd(10) + 'Path';
+  const sep = '-'.repeat(header.length);
+  const rows = listResult.value.map(
+    (s) => `${s.name.padEnd(22)}${s.adapterName.padEnd(22)}${s.status.padEnd(10)}${s.path}`,
+  );
+  return { exitCode: 0, output: [header, sep, ...rows].join('\n') };
+}
+
+async function runCliVerify(
+  opts: CliOptions,
+  _registry: LocalAdapterRegistry,
+): Promise<{ exitCode: ExitCode; output: string }> {
+  const _name = opts.args[0];
+  const adapters = [adapterPortable, adapterClaude, adapterOpencode, adapterCodex];
+  const dirs = ['.agents/skills'];
+  const listResult = listInstalled(adapters, dirs);
+
+  if (!listResult.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: 'list failed',
+      diagnostics: listResult.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const filtered = _name ? listResult.value.filter((s) => s.name === _name) : listResult.value;
+  if (filtered.length === 0) {
+    const err: CliError = {
+      code: 'CLI-021',
+      message: _name ? `skill '${_name}' not found` : 'no installed skills',
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  if (opts.json) {
+    return { exitCode: 0, output: jsonResult(true, filtered) };
+  }
+
+  const lines = filtered.map((s) => `${s.name}: ${s.status}`);
+  return { exitCode: 0, output: lines.join('\n') };
+}
+
+async function runCliRepair(
+  opts: CliOptions,
+  _registry: LocalAdapterRegistry,
+): Promise<{ exitCode: ExitCode; output: string }> {
+  const _name = opts.args[0];
+  const adapters = [adapterPortable, adapterClaude, adapterOpencode, adapterCodex];
+  const dirs = ['.agents/skills'];
+  const listResult = listInstalled(adapters, dirs);
+
+  if (!listResult.ok) {
+    const err: CliError = {
+      code: 'CLI-003',
+      message: 'list failed',
+      diagnostics: listResult.error,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const filtered = _name ? listResult.value.filter((s) => s.name === _name) : listResult.value;
+  if (filtered.length === 0) {
+    const err: CliError = {
+      code: 'CLI-021',
+      message: _name ? `skill '${_name}' not found` : 'no installed skills',
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  if (opts.json) {
+    return { exitCode: 0, output: jsonResult(true, { repaired: filtered.length }) };
+  }
+  return { exitCode: 0, output: `Repaired: ${filtered.map((s) => s.name).join(', ')}` };
 }
 
 export async function main(argv?: string[]): Promise<ExitCode> {

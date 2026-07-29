@@ -8,3 +8,7 @@ export type { IntegrityManifest } from './manifest.js';
 export { formatDryRun } from './dryrun.js';
 export type { DryRunOptions, ResolvedInstallPlan } from './dryrun.js';
 export { toPosixPath, resolveProjectScope, resolveUserScope, resolveCustomScope } from './paths.js';
+export { execute, verifyInstalled, repair } from './executor.js';
+export type { ExecutorAction, ExecutorOptions, ExecutorResult, VerifyCheck } from './executor.js';
+export { listInstalled } from './lister.js';
+export type { InstalledSkillInfo } from './lister.js';
