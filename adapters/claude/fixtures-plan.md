@@ -76,6 +76,7 @@ description: Minimal test skill
 ### detect/invalid-empty.md
 
 ```
+
 ```
 
 **Expect:** `detect(content)` → `false`
@@ -110,6 +111,7 @@ This is the skill body.
 ```
 
 **Expect:**
+
 - `name`: `'test-skill'`
 - `description`: `'A minimal test skill. Use when testing.'`
 - `body`: markdown body content
@@ -137,7 +139,7 @@ paths:
   - tests/**/*.ts
 shell: bash
 arguments: [input, output]
-argument-hint: "<input-file> [output-dir]"
+argument-hint: '<input-file> [output-dir]'
 hooks:
   preToolUse: scripts/validate.sh
 disabled: false
@@ -148,13 +150,16 @@ user-invocable: true
 # Full Skill
 
 ## Instructions
+
 Full skill instructions here.
 
 ## Examples
+
 Example usage.
 ```
 
 **Expect:**
+
 - All frontmatter fields parsed correctly
 - `allowedTools`: `['Read', 'Write', 'Edit', 'Bash', 'Grep']`
 - `disallowedTools`: `['AskUserQuestion']`
@@ -179,6 +184,7 @@ Body.
 ```
 
 **Expect:**
+
 - `allowedTools`: `['Read', 'Write', 'Edit']`
 - Comma-separated string parsed correctly
 
@@ -196,6 +202,7 @@ allowed-tools:
 ```
 
 **Expect:**
+
 - `allowedTools`: `['Read', 'Bash', 'Grep']`
 - YAML list parsed correctly
 
@@ -207,7 +214,7 @@ name: nonbool-skill
 description: Test boolean parsing.
 disabled: yes
 disable-model-invocation: on
-user-invocable: "no"
+user-invocable: 'no'
 background: 1
 ---
 
@@ -215,6 +222,7 @@ Body.
 ```
 
 **Expect:**
+
 - `disabled`: `true` (from `yes`)
 - `disable-model-invocation`: `true` (from `on`)
 - `user-invocable`: `false` (from `"no"`)
@@ -231,7 +239,7 @@ license: MIT
 compatibility: Designed for Claude Code
 metadata:
   author: test-author
-  version: "1.0.0"
+  version: '1.0.0'
 allowed-tools: Read Grep
 ---
 
@@ -239,6 +247,7 @@ Body.
 ```
 
 **Expect:**
+
 - `name` and `description` from standard fields
 - `extensions.license`: `'MIT'`
 - `extensions.compatibility`: `'Designed for Claude Code'`
@@ -255,6 +264,7 @@ effort: max
 ```
 
 **Expect:**
+
 - `effort`: `'max'`
 
 ### parse/invalid-effort.md
@@ -268,6 +278,7 @@ effort: extreme
 ```
 
 **Expect:**
+
 - `effort`: `'extreme'` (preserved)
 - Diagnostic CLAUDE-003: invalid effort level
 
@@ -281,6 +292,7 @@ description: [unclosed list
 ```
 
 **Expect:**
+
 - Diagnostic CLAUDE-001 (malformed YAML)
 - Partial or empty frontmatter
 
@@ -291,6 +303,7 @@ Just body text with no frontmatter.
 ```
 
 **Expect:**
+
 - `frontmatter`: `{}`
 - `body`: `'Just body text with no frontmatter.'`
 - `name`: `'unnamed'`
@@ -310,6 +323,7 @@ Body.
 ```
 
 **Expect:**
+
 - `extensions.custom_field`: `'value'`
 - `extensions.another_field`: `42`
 - Diagnostic CLAUDE-002 for each unknown field
@@ -327,6 +341,7 @@ Body.
 ```
 
 **Expect:**
+
 - `disabled`: `true`
 - Diagnostic: info about skill being disabled
 
@@ -346,6 +361,7 @@ Body.
 ```
 
 **Expect:**
+
 - Output starts with `---`
 - Contains `name: compiled-skill`
 - Contains `description: A compiled test skill.`
@@ -371,22 +387,23 @@ Body.
 ```
 
 **Expect:**
+
 - Known fields in deterministic order in YAML frontmatter
 - `allowed-tools` rendered as space-separated string
 
 ## Test Coverage Matrix
 
-| Test Area          | # Fixtures | Coverage                                        |
-| ------------------ | ---------- | ----------------------------------------------- |
-| detect valid       | 2          | Content string, name+description                |
-| detect invalid     | 3          | No frontmatter, empty, wrong ext                |
-| parse basic        | 2          | Minimal, full (all fields)                      |
-| parse fields       | 7          | Tools, fork, manual, args, paths, hooks, shell  |
-| parse variants     | 3          | Open standard, non-bool, effort variants        |
-| parse invalid      | 2          | Malformed YAML, invalid effort                  |
-| parse edges        | 4          | No frontmatter, unknown fields, disabled, empty |
-| compile            | 2          | Minimal, full                                   |
-| roundtrip          | 4          | All valid fixtures round-tripped                |
+| Test Area      | # Fixtures | Coverage                                        |
+| -------------- | ---------- | ----------------------------------------------- |
+| detect valid   | 2          | Content string, name+description                |
+| detect invalid | 3          | No frontmatter, empty, wrong ext                |
+| parse basic    | 2          | Minimal, full (all fields)                      |
+| parse fields   | 7          | Tools, fork, manual, args, paths, hooks, shell  |
+| parse variants | 3          | Open standard, non-bool, effort variants        |
+| parse invalid  | 2          | Malformed YAML, invalid effort                  |
+| parse edges    | 4          | No frontmatter, unknown fields, disabled, empty |
+| compile        | 2          | Minimal, full                                   |
+| roundtrip      | 4          | All valid fixtures round-tripped                |
 
 Total: ~29 fixture files
 

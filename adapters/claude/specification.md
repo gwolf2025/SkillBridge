@@ -82,14 +82,14 @@ The compiler emits valid `SKILL.md` content that can be placed into
 
 Claude Code discovers skills in the following locations (order: project overrides user):
 
-| Scope   | Path                                     | Type             |
-| ------- | ---------------------------------------- | ---------------- |
-| Project | `.claude/skills/<name>/SKILL.md`         | Directory skill  |
-| Project | `.claude/skills/<name>.md`               | Flat-file skill  |
-| Project | `.claude/commands/<name>.md`             | Flat-file command|
-| User    | `~/.claude/skills/<name>/SKILL.md`       | Directory skill  |
-| User    | `~/.claude/skills/<name>.md`             | Flat-file skill  |
-| User    | `~/.claude/commands/<name>.md`           | Flat-file command|
+| Scope   | Path                               | Type              |
+| ------- | ---------------------------------- | ----------------- |
+| Project | `.claude/skills/<name>/SKILL.md`   | Directory skill   |
+| Project | `.claude/skills/<name>.md`         | Flat-file skill   |
+| Project | `.claude/commands/<name>.md`       | Flat-file command |
+| User    | `~/.claude/skills/<name>/SKILL.md` | Directory skill   |
+| User    | `~/.claude/skills/<name>.md`       | Flat-file skill   |
+| User    | `~/.claude/commands/<name>.md`     | Flat-file command |
 
 Commands (`/command-name`) and skills (`/skill-name`) share the same `SKILL.md`
 format. The distinction is purely filesystem location — `.claude/commands/`
@@ -103,37 +103,37 @@ All fields are based on the official Claude Code documentation
 
 ### Claude Code Fields
 
-| Field                    | Type                | Required | Default      | Description                                                |
-| ------------------------ | ------------------- | -------- | ------------ | ---------------------------------------------------------- |
-| `name`                   | string              | No       | directory name | Display name in listings. Does NOT change slash-command. |
-| `description`            | string              | Recommended | first body paragraph | What the skill does and when to use it. Truncated at 1,536 chars. |
-| `when_to_use`            | string              | No       | —            | Extended trigger phrases appended to description.         |
-| `disabled`               | bool                | No       | false        | If true, skill is skipped during loading.                 |
-| `allowed-tools`          | string or string[]  | No       | all tools    | Tools pre-approved without asking. Space/comma/YAML list. |
-| `disallowed-tools`       | string or string[]  | No       | —            | Tools removed while skill active.                         |
-| `model`                  | string              | No       | session      | Model override while skill active.                        |
-| `effort`                 | string              | No       | session      | Reasoning depth: low, medium, high, xhigh, max.            |
-| `context`                | string              | No       | —            | `fork` runs skill in isolated subagent.                   |
-| `agent`                  | string              | No       | claude-code   | Subagent type when `context: fork`.                       |
-| `background`             | bool                | No       | true         | Only with `context: fork`. true=background, false=await.  |
-| `hooks`                  | object              | No       | —            | Lifecycle hooks (preToolUse, postToolUse, etc.).          |
-| `paths`                  | string or string[]  | No       | —            | Glob patterns limiting auto-activation.                   |
-| `shell`                  | string              | No       | bash         | Inline shell: bash or powershell.                         |
-| `arguments`              | string or string[]  | No       | —            | Named positional args for `$name` substitution.           |
-| `argument-hint`          | string              | No       | —            | Autocomplete hint text.                                   |
-| `disable-model-invocation` | bool              | No       | false        | true = Claude cannot auto-load; manual `/name` only.      |
-| `user-invocable`         | bool                | No       | true         | false = hide from `/` menu; Claude can still auto-load.   |
+| Field                      | Type               | Required    | Default              | Description                                                       |
+| -------------------------- | ------------------ | ----------- | -------------------- | ----------------------------------------------------------------- |
+| `name`                     | string             | No          | directory name       | Display name in listings. Does NOT change slash-command.          |
+| `description`              | string             | Recommended | first body paragraph | What the skill does and when to use it. Truncated at 1,536 chars. |
+| `when_to_use`              | string             | No          | —                    | Extended trigger phrases appended to description.                 |
+| `disabled`                 | bool               | No          | false                | If true, skill is skipped during loading.                         |
+| `allowed-tools`            | string or string[] | No          | all tools            | Tools pre-approved without asking. Space/comma/YAML list.         |
+| `disallowed-tools`         | string or string[] | No          | —                    | Tools removed while skill active.                                 |
+| `model`                    | string             | No          | session              | Model override while skill active.                                |
+| `effort`                   | string             | No          | session              | Reasoning depth: low, medium, high, xhigh, max.                   |
+| `context`                  | string             | No          | —                    | `fork` runs skill in isolated subagent.                           |
+| `agent`                    | string             | No          | claude-code          | Subagent type when `context: fork`.                               |
+| `background`               | bool               | No          | true                 | Only with `context: fork`. true=background, false=await.          |
+| `hooks`                    | object             | No          | —                    | Lifecycle hooks (preToolUse, postToolUse, etc.).                  |
+| `paths`                    | string or string[] | No          | —                    | Glob patterns limiting auto-activation.                           |
+| `shell`                    | string             | No          | bash                 | Inline shell: bash or powershell.                                 |
+| `arguments`                | string or string[] | No          | —                    | Named positional args for `$name` substitution.                   |
+| `argument-hint`            | string             | No          | —                    | Autocomplete hint text.                                           |
+| `disable-model-invocation` | bool               | No          | false                | true = Claude cannot auto-load; manual `/name` only.              |
+| `user-invocable`           | bool               | No          | true                 | false = hide from `/` menu; Claude can still auto-load.           |
 
 ### Agent Skills Open Standard Fields (Cross-Agent)
 
-| Field           | Type                | Required | Description                                           |
-| --------------- | ------------------- | -------- | ----------------------------------------------------- |
-| `name`          | string              | Yes      | Max 64 chars, lowercase + hyphens, matches dir name.  |
-| `description`   | string              | Yes      | Max 1,024 chars.                                      |
-| `license`       | string              | No       | SPDX identifier or reference to bundled license file. |
-| `compatibility` | string              | No       | Max 500 chars. Environment requirements.              |
-| `metadata`      | object              | No       | Arbitrary key-value metadata.                         |
-| `allowed-tools` | string (space-separated) | No   | Experimental. Pre-approved tool names.                |
+| Field           | Type                     | Required | Description                                           |
+| --------------- | ------------------------ | -------- | ----------------------------------------------------- |
+| `name`          | string                   | Yes      | Max 64 chars, lowercase + hyphens, matches dir name.  |
+| `description`   | string                   | Yes      | Max 1,024 chars.                                      |
+| `license`       | string                   | No       | SPDX identifier or reference to bundled license file. |
+| `compatibility` | string                   | No       | Max 500 chars. Environment requirements.              |
+| `metadata`      | object                   | No       | Arbitrary key-value metadata.                         |
+| `allowed-tools` | string (space-separated) | No       | Experimental. Pre-approved tool names.                |
 
 The Claude Code adapter should handle both variants: the strict open-standard
 schema (name+description required) and the more permissive Claude Code schema.
@@ -154,20 +154,20 @@ The adapter returns `ClaudeSkillResult` from `parse()`:
 
 ```typescript
 interface ClaudeSkillResult {
-  name: string;           // from name field or directory name
-  description: string;    // from description or first body paragraph
+  name: string; // from name field or directory name
+  description: string; // from description or first body paragraph
   frontmatter: Record<string, unknown>; // all parsed frontmatter fields
-  body: string;           // the markdown body (skill instructions)
-  extensions: Record<string, unknown>;  // unknown/unmapped frontmatter fields
+  body: string; // the markdown body (skill instructions)
+  extensions: Record<string, unknown>; // unknown/unmapped frontmatter fields
   diagnostics: Diagnostic[];
   // resolved from frontmatter:
   allowedTools?: string[];
   disallowedTools?: string[];
-  isForked?: boolean;     // context === 'fork'
+  isForked?: boolean; // context === 'fork'
   isManualOnly?: boolean; // disable-model-invocation === true
   isUserInvokable?: boolean; // default true
-  paths?: string[];       // path-scoped activation globs
-  arguments?: string[];   // named positional arguments
+  paths?: string[]; // path-scoped activation globs
+  arguments?: string[]; // named positional arguments
   argumentsHint?: string; // autocomplete hint
   model?: string;
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
@@ -180,43 +180,43 @@ interface ClaudeSkillResult {
 
 ### Identity Mapping
 
-| OpenCode Field    | IR Field              | Notes                                       |
-| ----------------- | --------------------- | ------------------------------------------- |
-| `name`            | `identity.name`       | From frontmatter or directory name hint.    |
-| —                 | `identity.version`    | Defaults to `'0.0.0'`.                      |
-| `description`     | `identity.description`| First 1,024 chars.                          |
-| body              | `invocation.instructions` | Full markdown body.                      |
+| OpenCode Field | IR Field                  | Notes                                    |
+| -------------- | ------------------------- | ---------------------------------------- |
+| `name`         | `identity.name`           | From frontmatter or directory name hint. |
+| —              | `identity.version`        | Defaults to `'0.0.0'`.                   |
+| `description`  | `identity.description`    | First 1,024 chars.                       |
+| body           | `invocation.instructions` | Full markdown body.                      |
 
 ### Capability Derivation
 
-| Condition                                  | Capability       |
-| ------------------------------------------ | ---------------- |
-| `allowed-tools` includes `Write`/`Edit`    | `file-write`     |
-| `allowed-tools` includes `Bash`            | `command-exec`   |
-| no `allowed-tools` (all tools available)   | `file-write`, `command-exec` |
-| `context: fork`                            | — (no IR equivalent) |
+| Condition                                | Capability                   |
+| ---------------------------------------- | ---------------------------- |
+| `allowed-tools` includes `Write`/`Edit`  | `file-write`                 |
+| `allowed-tools` includes `Bash`          | `command-exec`               |
+| no `allowed-tools` (all tools available) | `file-write`, `command-exec` |
+| `context: fork`                          | — (no IR equivalent)         |
 
 ### Permission Mapping
 
 Claude Code uses tool-based permissions via `allowed-tools`/`disallowed-tools`,
 not resource-glob-based permissions like OpenCode. The mapping to IR `Permission[]`:
 
-| allowed-tools entry | IR Permission                |
-| ------------------- | ---------------------------- |
-| `Read`              | `{ resource: 'fs', actions: ['read'] }` |
-| `Write` / `Edit`    | `{ resource: 'fs', actions: ['write'] }` |
+| allowed-tools entry | IR Permission                                  |
+| ------------------- | ---------------------------------------------- |
+| `Read`              | `{ resource: 'fs', actions: ['read'] }`        |
+| `Write` / `Edit`    | `{ resource: 'fs', actions: ['write'] }`       |
 | `Bash`              | `{ resource: 'bash:*', actions: ['execute'] }` |
-| `Grep`              | `{ resource: 'fs', actions: ['search'] }` |
-| `Search`            | `{ resource: 'fs', actions: ['search'] }` |
-| `Git`               | ─ (not mapped)               |
-| `AskUserQuestion`   | ─ (not mapped)               |
+| `Grep`              | `{ resource: 'fs', actions: ['search'] }`      |
+| `Search`            | `{ resource: 'fs', actions: ['search'] }`      |
+| `Git`               | ─ (not mapped)                                 |
+| `AskUserQuestion`   | ─ (not mapped)                                 |
 
 ### Source Metadata
 
-| Field                   | Value                        |
-| ----------------------- | ---------------------------- |
-| `source.format`         | `'markdown'`                 |
-| `source.path`           | source path if from file     |
+| Field           | Value                    |
+| --------------- | ------------------------ |
+| `source.format` | `'markdown'`             |
+| `source.path`   | source path if from file |
 
 ## 6. Compilation
 
@@ -229,13 +229,13 @@ Compilation produces a `SKILL.md` file with YAML frontmatter and markdown body:
 
 ## 7. Diagnostic Codes
 
-| Code          | Severity | Condition                                         |
-| ------------- | -------- | ------------------------------------------------- |
-| CLAUDE-001    | error    | Malformed YAML in frontmatter                     |
-| CLAUDE-002    | warning  | Unknown frontmatter field (preserved in extensions)|
-| CLAUDE-003    | warning  | Unsupported field value (e.g., invalid effort level) |
-| CLAUDE-004    | info     | Boolean field parsed from non-boolean value       |
-| CLAUDE-005    | info     | Tool name not in known tool set (preserved as-is) |
+| Code       | Severity | Condition                                            |
+| ---------- | -------- | ---------------------------------------------------- |
+| CLAUDE-001 | error    | Malformed YAML in frontmatter                        |
+| CLAUDE-002 | warning  | Unknown frontmatter field (preserved in extensions)  |
+| CLAUDE-003 | warning  | Unsupported field value (e.g., invalid effort level) |
+| CLAUDE-004 | info     | Boolean field parsed from non-boolean value          |
+| CLAUDE-005 | info     | Tool name not in known tool set (preserved as-is)    |
 
 ## 8. Install/Uninstall Planning
 
@@ -255,23 +255,23 @@ Compilation produces a `SKILL.md` file with YAML frontmatter and markdown body:
 
 ## 9. Unsupported or Ambiguous Behavior
 
-| Feature              | IR Support | Handling                                |
-| -------------------- | ---------- | --------------------------------------- |
-| `hooks`              | None       | Preserved in extensions; diagnostic.    |
-| `context: fork`      | None       | Preserved in extensions; diagnostic.    |
-| `background`         | None       | Preserved in extensions; diagnostic.    |
-| `model`              | None       | Preserved in extensions; diagnostic.    |
-| `effort`             | None       | Preserved in extensions; diagnostic.    |
-| `shell`              | None       | Preserved in extensions; diagnostic.    |
-| `paths`              | None       | Preserved in extensions; diagnostic.    |
-| `arguments`/`argument-hint`| None  | Preserved in extensions; diagnostic.    |
-| `disable-model-invocation`| None   | Preserved in extensions; diagnostic.    |
-| `user-invocable`     | None       | Preserved in extensions; diagnostic.    |
-| `disabled`           | None       | Preserved in extensions; diagnostic.    |
-| `allowed-tools`      | Partial    | Mapped to capabilities + permissions; unmapped tools preserved. |
-| `disallowed-tools`   | None       | Preserved in extensions; diagnostic.    |
-| Supporting files (scripts, references) | None | Not compiled; install step copies the directory tree. |
-| Directory-vs-flat-file structure | None | Install writes to directory if compiled from one. |
+| Feature                                | IR Support | Handling                                                        |
+| -------------------------------------- | ---------- | --------------------------------------------------------------- |
+| `hooks`                                | None       | Preserved in extensions; diagnostic.                            |
+| `context: fork`                        | None       | Preserved in extensions; diagnostic.                            |
+| `background`                           | None       | Preserved in extensions; diagnostic.                            |
+| `model`                                | None       | Preserved in extensions; diagnostic.                            |
+| `effort`                               | None       | Preserved in extensions; diagnostic.                            |
+| `shell`                                | None       | Preserved in extensions; diagnostic.                            |
+| `paths`                                | None       | Preserved in extensions; diagnostic.                            |
+| `arguments`/`argument-hint`            | None       | Preserved in extensions; diagnostic.                            |
+| `disable-model-invocation`             | None       | Preserved in extensions; diagnostic.                            |
+| `user-invocable`                       | None       | Preserved in extensions; diagnostic.                            |
+| `disabled`                             | None       | Preserved in extensions; diagnostic.                            |
+| `allowed-tools`                        | Partial    | Mapped to capabilities + permissions; unmapped tools preserved. |
+| `disallowed-tools`                     | None       | Preserved in extensions; diagnostic.                            |
+| Supporting files (scripts, references) | None       | Not compiled; install step copies the directory tree.           |
+| Directory-vs-flat-file structure       | None       | Install writes to directory if compiled from one.               |
 
 ## 10. Cross-Agent Compatibility
 
@@ -279,14 +279,14 @@ The Agent Skills open standard (`agentskills.io`) defines a minimal subset
 that works across all compatible agents (Claude Code, Codex CLI, Cursor,
 GitHub Copilot):
 
-| Field             | Claude Code | Codex CLI | Cursor | GitHub Copilot |
-| ----------------- | ----------- | --------- | ------ | -------------- |
-| `name`            | Yes         | Yes       | Yes    | Yes            |
-| `description`     | Yes         | Yes       | Yes    | Yes            |
-| `when_to_use`     | Yes         | Yes       | Partial| Yes            |
-| `allowed-tools`   | Yes         | No        | No     | No             |
-| `context: fork`   | Yes         | No        | No     | No             |
-| `hooks`           | Yes         | No        | No     | No             |
+| Field           | Claude Code | Codex CLI | Cursor  | GitHub Copilot |
+| --------------- | ----------- | --------- | ------- | -------------- |
+| `name`          | Yes         | Yes       | Yes     | Yes            |
+| `description`   | Yes         | Yes       | Yes     | Yes            |
+| `when_to_use`   | Yes         | Yes       | Partial | Yes            |
+| `allowed-tools` | Yes         | No        | No      | No             |
+| `context: fork` | Yes         | No        | No      | No             |
+| `hooks`         | Yes         | No        | No      | No             |
 
 The adapter should not strip agent-specific fields but must document in
 diagnostics which fields have limited cross-agent support.

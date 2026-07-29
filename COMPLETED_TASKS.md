@@ -23,6 +23,7 @@
 | 2026-07-28 | OpenCode adapter specification and fixtures plan — format schemas, field mapping, permission model, 9 diagnostic codes, 12 testable assumptions, 27-fixture catalog | APPROVED — 0 open findings (spec-only task) |
 | 2026-07-28 | Implement the OpenCode adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; 27 fixtures; 59 unit + 12 integration + 6 roundtrip tests; adapter contract | APPROVED — 2 HIGH + 2 MEDIUM + 3 LOW findings fixed during repair |
 | 2026-07-28 | Research and document Claude Code Agent Skills format — specification, frontmatter fields, discovery paths, permissions, unsupported behavior, 29-fixture plan, 10 ACs | APPROVED — 3 LOW findings (research-only task) |
+| 2026-07-29 | Implement the Claude Code adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; 32 fixtures; 61 unit + 11 integration + 9 roundtrip tests; adapter contract; 81 total tests passing all 9 verify gates | APPROVED — 13/13 AC met, 3 LOW findings |
 
 ---
 

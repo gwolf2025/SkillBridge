@@ -1,0 +1,14 @@
+{
+  "name": "full-compiled",
+  "description": "Full compiled test.",
+  "frontmatter": {
+    "name": "full-compiled",
+    "description": "Full compiled test.",
+    "allowed-tools": "Read Write Edit Bash",
+    "effort": "high",
+    "context": "fork"
+  },
+  "body": "Full compiled body.",
+  "allowedTools": ["Read", "Write", "Edit", "Bash"],
+  "effort": "high"
+}

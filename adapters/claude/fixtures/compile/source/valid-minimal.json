@@ -1,0 +1,10 @@
+{
+  "name": "compiled-skill",
+  "description": "A compiled test skill.",
+  "frontmatter": {
+    "name": "compiled-skill",
+    "description": "A compiled test skill."
+  },
+  "body": "Compiled body content.",
+  "allowedTools": []
+}

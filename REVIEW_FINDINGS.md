@@ -5,27 +5,19 @@
 **Task Title:**
 **Diff Inspected:**
 
-## Summary
-
-_No review has been performed._
-
 ---
 
 ## Findings
 
-_None._
-
----
-
-## Acceptance Criteria Assessment
-
-_None._
+_No findings._
 
 ---
 
 ## Summary
 
-- **Approved:** No
-- **Repair Required:** No
-- **Needs Human Decision:** No
-- **Total Findings:** 0
+| Question | Answer |
+|---|---|
+| **Approved** | — |
+| **Repair Required** | — |
+| **Needs Human Decision** | — |
+| **Total Findings** | 0 |

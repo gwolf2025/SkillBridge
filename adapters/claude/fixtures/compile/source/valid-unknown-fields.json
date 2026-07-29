@@ -1,0 +1,13 @@
+{
+  "name": "ext-skill",
+  "description": "Extension test.",
+  "frontmatter": {
+    "name": "ext-skill",
+    "description": "Extension test.",
+    "custom_field": "value"
+  },
+  "body": "Body.",
+  "extensions": {
+    "custom_field": "value"
+  }
+}
