@@ -20,14 +20,15 @@
 - [x] **fs**: Implement safe filesystem loader with path safety, symlink protection, size/count limits, and file classification
 - [ ] **compiler**: Implement `CompilationManifest`, deterministic output writer, manifest serialization
 - [x] **conversion**: Implement `ConversionPipeline`, `ConversionResult`, adapter selection strategy
-  - [ ] **conversion/normalize**: Implement source-document-to-IR normalization pipeline with provenance, deterministic merge, body-section mapping, conflict detection, and extension preservation
+  - [x] **conversion/normalize**: Implement source-document-to-IR normalization pipeline with provenance, deterministic merge, body-section mapping, conflict detection, and extension preservation
+  - [x] **conversion/orchestrator**: Implement full pipeline orchestration with compatibility analysis, policy enforcement, manifest generation, output verification, field provenance tracking
 - [x] **adapter-sdk**: Extend `Adapter` with `install()`/`verify()`/`uninstall()`/`invoke()`/`installPlan()`; add `AdapterRegistry`, `ConversionContext`, `InstallPlan`, `AdapterError` types
 - [x] **registry-local**: Implement `LocalAdapterRegistry` with detection ranking, confidence scoring, ambiguity detection, and version-aware adapter storage
 - [x] **testing**: Implement `InMemoryTestAdapter`, `AdapterContract` test suite, expanded SKILL.md/testing fixtures
 
 ## Backlog — Initial Adapters
 
-- [ ] **adapter/portable**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
+- [x] **adapter/portable**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
 - [ ] **adapter/opencode**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
 - [ ] **adapter/claude**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics
 - [ ] **adapter/codex**: Implement `detect()`, `parse()`, `compile()`; declare manifest; surface diagnostics

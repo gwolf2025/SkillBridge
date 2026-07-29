@@ -1,14 +1,3 @@
-/**
- * @skillbridge/conversion
- *
- * Orchestration of the complete conversion pipeline:
- * source adapter selection, parsing, normalization, target adapter selection,
- * capability analysis, compilation, diagnostics, provenance, output verification.
- *
- * No vendor-specific mappings. Adapter interfaces are imported from @skillbridge/adapter-sdk.
- * Adapter instances are provided through dependency injection (AdapterSelector).
- */
-
 export {
   normalizePackageToIR,
   type NormalizationInput,
@@ -18,4 +7,12 @@ export {
 } from './normalize.js';
 
 export { ConversionPipeline } from './pipeline.js';
-export type { ConversionProvenance, ConversionStep, ConversionResult } from './pipeline.js';
+export type {
+  ConversionProvenance,
+  ConversionStep,
+  ConversionResult,
+  ConversionOptions,
+  PolicyMode,
+  PolicyDecision,
+  PolicyResult,
+} from './pipeline.js';
