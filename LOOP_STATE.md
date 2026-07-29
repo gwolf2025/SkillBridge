@@ -1,11 +1,11 @@
 # Loop State
 
 **Current State:** COMPLETE
-**Active Task:** adapter/codex — implement full adapter
+**Active Task:** None
 **Repair Cycle:** 0
-**Last Verification:** 2026-07-29T11:24:00Z — pnpm verify all 9 gates pass (551 unit, 128 integration, 29 roundtrip, 60 conversion tests; format:check, lint, depcheck, typecheck, build)
-**Last Command:** /sb-build
-**Last Plan:** CURRENT_TASK.md — implement @skillbridge/adapter-codex with full 8 capabilities, companion file support, open-standard preservation
+**Last Verification:** 2026-07-29T11:32:00Z — pnpm verify all 9 gates pass (571 unit, 138 integration, 29 roundtrip, 60 conversion tests; format:check, lint, depcheck, typecheck, build)
+**Last Command:** /sb-complete
+**Last Plan:** CURRENT_TASK.md — implement CLI foundation with command routing, human-readable/JSON output, structured errors, exit codes, version/help, and integration-test infrastructure
 
 ---
 

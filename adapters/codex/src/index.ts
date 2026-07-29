@@ -380,14 +380,14 @@ function buildCodexResult(
     }
   }
 
-    if (nameHint && !result.name) {
-      result.name = nameHint;
-    }
+  if (nameHint && !result.name) {
+    result.name = nameHint;
+  }
 
-    if (!hasExplicitDescription && !result.description && result.body) {
-      const firstPara = result.body.trim().split('\n\n')[0] ?? '';
-      result.description = firstPara;
-    }
+  if (!hasExplicitDescription && !result.description && result.body) {
+    const firstPara = result.body.trim().split('\n\n')[0] ?? '';
+    result.description = firstPara;
+  }
 
   if (openaiYaml && Object.keys(openaiYaml).length > 0) {
     extensions._codexOpenaiYaml = openaiYaml;

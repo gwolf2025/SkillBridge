@@ -2,7 +2,7 @@
   "name": "@skillbridge/cli",
   "version": "0.0.0",
   "private": true,
-  "description": "SkillBridge command-line application",
+  "description": "SkillBridge command-line application — convert AI-agent skills across vendor formats",
   "license": "Apache-2.0",
   "type": "module",
   "bin": {
@@ -17,10 +17,12 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^22.13.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
   }
 }

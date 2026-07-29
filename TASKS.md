@@ -33,14 +33,14 @@
   - [x] **adapter/opencode/research**: Produce specification, field mapping, permission model, fixtures plan. See `adapters/opencode/specification.md` and `fixtures-plan.md`.
 - [x] **adapter/claude**: Implement full adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; 32 fixtures; 61 unit + 11 integration + 9 roundtrip tests + contract; 3 LOW findings
   - [x] **adapter/claude/research**: Document source format, frontmatter fields, discovery paths, invocation, permissions, unsupported behavior, fixture plan, specs, ACs. See `adapters/claude/specification.md` and `fixtures-plan.md`.
-- [ ] **adapter/codex**: Implement full adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; companion file handling; open-standard preservation; 16 fixtures; 45+ unit + 10+ integration + 5+ roundtrip tests + contract
+- [x] **adapter/codex**: Implement full adapter — detect, parse, normalize, compile, installPlan, install, uninstall, verify; companion file handling; open-standard preservation; 16 fixtures; 45+ unit + 10+ integration + 5+ roundtrip tests + contract
   - [x] **adapter/codex/research**: Document source format, frontmatter fields, discovery paths, invocation, permissions, `agents/openai.yaml` companion file, cross-agent comparison, limitations, unknowns, fixture plan. See `adapters/codex/specification.md` and `fixtures-plan.md`.
 
 ## Backlog — CLI and Integration
 
-- [ ] **cli**: Implement `skillbridge convert` subcommand
-- [ ] **cli**: Implement `skillbridge list-adapters` subcommand
-- [ ] **cli**: Replace stub `main()` with real command dispatch
+- [x] **cli**: Implement CLI foundation with `skillbridge convert`, `skillbridge list-adapters`, `--help`, `--version`, `--json`, structured errors, exit codes; 20 unit + 10 integration tests
+- [ ] **cli**: Implement `skillbridge install` and `skillbridge verify` subcommands
+- [ ] **integration**: Write cross-package integration tests for full pipeline flows
 - [ ] **integration**: Write cross-package integration tests for full pipeline flows
 - [ ] **roundtrip**: Write round-trip conversion tests for each adapter pair
 - [ ] **conversion**: Write pipeline conversion tests for end-to-end scenarios

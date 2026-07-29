@@ -28,4 +28,8 @@
 
 ---
 
+| 2026-07-29 | CLI foundation — `skillbridge convert`, `list-adapters`, `--help`, `--version`, `--json`, structured errors, exit codes; 20 unit + 10 integration tests | APPROVED — 14/14 AC met, zero findings |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._
