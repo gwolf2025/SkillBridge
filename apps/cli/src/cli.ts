@@ -1,10 +1,14 @@
-import { readFileSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { join, dirname, resolve, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hostname } from 'node:os';
 import { ConversionPipeline } from '../../../packages/conversion/src/index.js';
 import type { ConversionResult, PolicyMode } from '../../../packages/conversion/src/index.js';
 import { LocalAdapterRegistry } from '../../../packages/registry-local/src/index.js';
 import type { Diagnostic, AdapterManifest } from '../../../packages/adapter-sdk/src/index.js';
+import { parseSkillMd, parseSkillbridgeYaml } from '../../../packages/parser/src/index.js';
+import { CAPABILITY_VOCABULARY } from '../../../packages/ir/src/index.js';
+import type { Capability } from '../../../packages/ir/src/index.js';
 import adapterPortable from '../../../adapters/portable/src/index.js';
 import adapterClaude from '../../../adapters/claude/src/index.js';
 import adapterOpencode from '../../../adapters/opencode/src/index.js';
@@ -27,6 +31,9 @@ export interface CliOptions {
   policy?: string;
   sourceAdapter?: string;
   targetAdapter?: string;
+  format?: string;
+  detail?: boolean;
+  adapter?: string;
   help: boolean;
   version: boolean;
 }
@@ -41,6 +48,21 @@ export interface JsonOutput {
   ok: boolean;
   value?: unknown;
   error?: CliError;
+}
+
+const SECRET_PATTERNS = [
+  /TOKEN/i,
+  /SECRET/i,
+  /API[_ ]?KEY/i,
+  /PASSWORD/i,
+  /CREDENTIAL/i,
+  /AUTH/i,
+  /PRIVATE[_ ]?KEY/i,
+  /ACCESS_KEY/i,
+];
+
+function isSecretEnvVar(name: string): boolean {
+  return SECRET_PATTERNS.some((re) => re.test(name));
 }
 
 function buildRegistry(): LocalAdapterRegistry {
@@ -76,6 +98,8 @@ export function parseArgs(argv: string[]): CliOptions {
       opts.version = true;
     } else if (arg === '--json') {
       opts.json = true;
+    } else if (arg === '--detail') {
+      opts.detail = true;
     } else if (arg.startsWith('--from=')) {
       opts.from = arg.slice(7);
     } else if (arg === '--from' && i + 1 < argv.length) {
@@ -101,6 +125,16 @@ export function parseArgs(argv: string[]): CliOptions {
     } else if (arg === '--target-adapter' && i + 1 < argv.length) {
       i++;
       opts.targetAdapter = argv[i];
+    } else if (arg.startsWith('--format=')) {
+      opts.format = arg.slice(9);
+    } else if (arg === '--format' && i + 1 < argv.length) {
+      i++;
+      opts.format = argv[i];
+    } else if (arg.startsWith('--adapter=')) {
+      opts.adapter = arg.slice(10);
+    } else if (arg === '--adapter' && i + 1 < argv.length) {
+      i++;
+      opts.adapter = argv[i];
     } else if (arg.startsWith('-')) {
       positional.push(arg);
     } else {
@@ -129,7 +163,8 @@ function formatDiagnostics(diagnostics: Diagnostic[]): string {
   const lines = diagnostics.map((d) => {
     const sev = d.severity.padEnd(7);
     const code = d.code ? ` [${d.code}]` : '';
-    return `  ${sev}${code} ${d.message}`;
+    const loc = d.location ? ` (${d.location.line}:${d.location.column})` : '';
+    return `  ${sev}${code} ${d.message}${loc}`;
   });
   return `\nDiagnostics:\n${lines.join('\n')}`;
 }
@@ -173,8 +208,25 @@ function formatConversionResult(result: ConversionResult): string {
   return lines.join('\n');
 }
 
-function formatAdapterTable(manifests: AdapterManifest[]): string {
+function formatAdapterDetail(m: AdapterManifest): string {
+  const lines: string[] = [];
+  lines.push(`  Name:           ${m.name}`);
+  lines.push(`  Version:        ${m.version}`);
+  lines.push(`  Vendor:         ${m.vendor}`);
+  lines.push(`  Adapter Version: ${m.adapterVersion}`);
+  lines.push(`  Source Formats:  ${m.supports.sourceFormats.join(', ')}`);
+  lines.push(`  Target Formats:  ${m.supports.targetFormats.join(', ')}`);
+  lines.push(`  Capabilities:    ${m.capabilities.join(', ')}`);
+  if (m.description) lines.push(`  Description:    ${m.description}`);
+  if (m.homepage) lines.push(`  Homepage:       ${m.homepage}`);
+  return lines.join('\n');
+}
+
+function formatAdapterTable(manifests: AdapterManifest[], detail?: boolean): string {
   if (manifests.length === 0) return 'No adapters registered.';
+  if (detail) {
+    return manifests.map(formatAdapterDetail).join('\n\n');
+  }
   const header =
     'Name'.padEnd(22) +
     'Version'.padEnd(12) +
@@ -193,7 +245,7 @@ function formatAdapterTable(manifests: AdapterManifest[]): string {
 }
 
 function formatError(err: CliError): string {
-  let msg = `Error: ${err.message}`;
+  let msg = `Error [${err.code}]: ${err.message}`;
   if (err.diagnostics && err.diagnostics.length > 0) {
     msg += formatDiagnostics(err.diagnostics);
   }
@@ -213,6 +265,41 @@ function serializeJson(obj: JsonOutput): string {
   );
 }
 
+function jsonResult(ok: true, value: unknown): string;
+function jsonResult(ok: false, error: CliError): string;
+function jsonResult(ok: boolean, valueOrError: unknown): string {
+  if (ok) {
+    return serializeJson({ ok: true, value: valueOrError });
+  }
+  return serializeJson({ ok: false, error: valueOrError as CliError });
+}
+
+function jsonError(err: CliError): string {
+  return jsonResult(false, err);
+}
+
+function formatFrontmatter(fm: Record<string, unknown>): string {
+  const lines: string[] = ['Frontmatter:'];
+  for (const [key, value] of Object.entries(fm)) {
+    const valStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    lines.push(`  ${key}: ${valStr}`);
+  }
+  return lines.join('\n');
+}
+
+function formatSections(sections: Array<{ heading: string; body: string }>): string {
+  if (sections.length === 0) return '';
+  const lines: string[] = ['Sections:'];
+  for (const s of sections) {
+    lines.push(`  ## ${s.heading}`);
+    if (s.body) {
+      const preview = s.body.length > 80 ? s.body.slice(0, 80) + '...' : s.body;
+      lines.push(`     ${preview.replace(/\n/g, '\n     ')}`);
+    }
+  }
+  return lines.join('\n');
+}
+
 export function printUsage(): string {
   return [
     'SkillBridge — Write an AI skill once. Run it anywhere.',
@@ -221,7 +308,13 @@ export function printUsage(): string {
     '',
     'Commands:',
     '  convert          Convert a skill between vendor formats',
-    '  list-adapters    List all registered adapters',
+    '  parse            Parse and display SKILL.md structure',
+    '  validate         Validate a skill package directory',
+    '  inspect          Show full skill package metadata',
+    '  adapters         List registered adapters',
+    '  list-adapters    Alias for adapters',
+    '  capabilities     List IR capability vocabulary',
+    '  doctor           Run local environment diagnostics',
     '',
     'Global flags:',
     '  --help, -h       Show this help message',
@@ -235,16 +328,26 @@ export function printUsage(): string {
     '  --source-adapter <name>  Preferred source adapter',
     '  --target-adapter <name>  Preferred target adapter',
     '',
+    'Adapters flags:',
+    '  --format <fmt>   Filter by source/target format',
+    '  --detail         Show detailed adapter information',
+    '',
+    'Capabilities flags:',
+    '  --adapter <name> Show capabilities for a specific adapter',
+    '',
     'Examples:',
     '  skillbridge --help',
     '  skillbridge --version',
-    '  skillbridge --json list-adapters',
-    '  skillbridge convert --from markdown --to markdown my-skill.md',
-    '  skillbridge convert --from markdown --to markdown --source-adapter adapter-claude --target-adapter adapter-codex my-skill.md',
+    '  skillbridge parse my-skill.md',
+    '  skillbridge validate ./packages/my-skill/',
+    '  skillbridge inspect ./packages/my-skill/ --json',
+    '  skillbridge adapters --detail',
+    '  skillbridge capabilities --adapter adapter-portable',
+    '  skillbridge doctor',
   ].join('\n');
 }
 
-export function run(argv: string[]): { exitCode: ExitCode; output: string } {
+export async function run(argv: string[]): Promise<{ exitCode: ExitCode; output: string }> {
   const opts = parseArgs(argv);
 
   if (opts.help || (!opts.command && !opts.version)) {
@@ -258,19 +361,30 @@ export function run(argv: string[]): { exitCode: ExitCode; output: string } {
 
   const registry = buildRegistry();
 
-  if (opts.command === 'convert') {
-    return runConvert(opts, registry);
+  switch (opts.command) {
+    case 'convert':
+      return runConvert(opts, registry);
+    case 'list-adapters':
+    case 'adapters':
+      return runAdapters(opts, registry);
+    case 'parse':
+      return runParse(opts);
+    case 'validate':
+      return runValidate(opts);
+    case 'inspect':
+      return runInspect(opts);
+    case 'capabilities':
+      return runCapabilities(opts, registry);
+    case 'doctor':
+      return runDoctor(opts, registry);
+    default: {
+      const err: CliError = { code: 'CLI-001', message: `unknown command '${opts.command}'` };
+      if (opts.json) {
+        return { exitCode: 1, output: jsonError(err) };
+      }
+      return { exitCode: 1, output: formatError(err) };
+    }
   }
-
-  if (opts.command === 'list-adapters') {
-    return runListAdapters(opts, registry);
-  }
-
-  const err: CliError = { code: 'CLI-001', message: `unknown command '${opts.command}'` };
-  if (opts.json) {
-    return { exitCode: 1, output: serializeJson({ ok: false, error: err }) };
-  }
-  return { exitCode: 1, output: formatError(err) };
 }
 
 function runConvert(
@@ -286,9 +400,7 @@ function runConvert(
       code: 'CLI-002',
       message: 'missing source argument for convert command',
     };
-    if (opts.json) {
-      return { exitCode: 1, output: serializeJson({ ok: false, error: err }) };
-    }
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
     return { exitCode: 1, output: formatError(err) };
   }
 
@@ -300,9 +412,7 @@ function runConvert(
       code: 'CLI-004',
       message: `cannot read source: ${e instanceof Error ? e.message : String(e)}`,
     };
-    if (opts.json) {
-      return { exitCode: 1, output: serializeJson({ ok: false, error: err }) };
-    }
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
     return { exitCode: 1, output: formatError(err) };
   }
 
@@ -320,30 +430,23 @@ function runConvert(
       message: result.error.find((d) => d.severity === 'error')?.message || 'conversion failed',
       diagnostics: result.error,
     };
-    if (opts.json) {
-      return { exitCode: 1, output: serializeJson({ ok: false, error: err }) };
-    }
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
     return { exitCode: 1, output: formatError(err) };
   }
 
   const conv = result.value;
-
   if (opts.json) {
-    const diag = conv.diagnostics.length > 0 ? conv.diagnostics : undefined;
     return {
       exitCode: 0,
-      output: serializeJson({
-        ok: true,
-        value: {
-          output: conv.output,
-          diagnostics: diag,
-          compatibility: conv.compatibility,
-          securityImpact: conv.securityImpact,
-          provenance: conv.provenance,
-          manifest: conv.manifest,
-          policyResult: conv.policyResult,
-          fieldProvenances: conv.fieldProvenances,
-        },
+      output: jsonResult(true, {
+        output: conv.output,
+        diagnostics: conv.diagnostics.length > 0 ? conv.diagnostics : undefined,
+        compatibility: conv.compatibility,
+        securityImpact: conv.securityImpact,
+        provenance: conv.provenance,
+        manifest: conv.manifest,
+        policyResult: conv.policyResult,
+        fieldProvenances: conv.fieldProvenances,
       }),
     };
   }
@@ -351,22 +454,446 @@ function runConvert(
   return { exitCode: 0, output: formatConversionResult(conv) };
 }
 
-function runListAdapters(
+function runParse(opts: CliOptions): { exitCode: ExitCode; output: string } {
+  const fileArg = opts.args[0];
+
+  if (!fileArg) {
+    const err: CliError = { code: 'CLI-010', message: 'missing file argument for parse command' };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  let content: string;
+  try {
+    content = readFileSync(fileArg, 'utf-8');
+  } catch (e) {
+    const err: CliError = {
+      code: 'CLI-011',
+      message: `cannot read file: ${e instanceof Error ? e.message : String(e)}`,
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const result = parseSkillMd(content, fileArg);
+
+  if (!result.ok) {
+    const err: CliError = { code: 'CLI-012', message: 'parse failed', diagnostics: result.error };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const parsed = result.value;
+  const allDiagnostics: Diagnostic[] = parsed.diagnostics ?? [];
+
+  if (opts.json) {
+    return {
+      exitCode: allDiagnostics.some((d) => d.severity === 'error') ? 1 : 0,
+      output: jsonResult(true, {
+        frontmatter: parsed.frontmatter,
+        sections: parsed.sections,
+        extensions: parsed.extensions,
+        diagnostics: allDiagnostics.length > 0 ? allDiagnostics : undefined,
+      }),
+    };
+  }
+
+  const lines: string[] = [];
+  lines.push(formatFrontmatter(parsed.frontmatter));
+  if (parsed.extensions && Object.keys(parsed.extensions).length > 0) {
+    lines.push(`Extensions: ${JSON.stringify(parsed.extensions)}`);
+  }
+  const sectionsStr = formatSections(parsed.sections);
+  if (sectionsStr) lines.push(sectionsStr);
+  if (allDiagnostics.length > 0) lines.push(formatDiagnostics(allDiagnostics));
+
+  return {
+    exitCode: allDiagnostics.some((d) => d.severity === 'error') ? 1 : 0,
+    output: lines.join('\n'),
+  };
+}
+
+function runValidate(opts: CliOptions): { exitCode: ExitCode; output: string } {
+  const dirArg = opts.args[0];
+
+  if (!dirArg) {
+    const err: CliError = {
+      code: 'CLI-013',
+      message: 'missing directory argument for validate command',
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const normalizedPath = resolve(normalize(dirArg));
+  if (!existsSync(normalizedPath)) {
+    const err: CliError = { code: 'CLI-014', message: `directory not found: ${dirArg}` };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const diagnostics: Diagnostic[] = [];
+
+  const skillMdPath = join(normalizedPath, 'SKILL.md');
+  if (!existsSync(skillMdPath)) {
+    const err: CliError = {
+      code: 'CLI-014',
+      message: `missing SKILL.md in ${normalizedPath}`,
+      diagnostics: [
+        {
+          severity: 'error',
+          message: `missing required SKILL.md in ${normalizedPath}`,
+          code: 'PARSER-001',
+        },
+      ],
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  try {
+    const content = readFileSync(skillMdPath, 'utf-8');
+    const parseResult = parseSkillMd(content, skillMdPath);
+    if (!parseResult.ok) {
+      diagnostics.push(...parseResult.error);
+    } else if (parseResult.value.diagnostics) {
+      diagnostics.push(...parseResult.value.diagnostics);
+    }
+  } catch (e) {
+    diagnostics.push({
+      severity: 'error',
+      message: `cannot read SKILL.md: ${e instanceof Error ? e.message : String(e)}`,
+      code: 'PARSER-007',
+    });
+  }
+
+  const yamlPath = join(normalizedPath, 'skillbridge.yaml');
+  if (existsSync(yamlPath)) {
+    try {
+      const yamlContent = readFileSync(yamlPath, 'utf-8');
+      const yamlResult = parseSkillbridgeYaml(yamlContent);
+      if (!yamlResult.ok) {
+        diagnostics.push(...yamlResult.error);
+      } else if (yamlResult.value.diagnostics) {
+        diagnostics.push(...yamlResult.value.diagnostics);
+      }
+    } catch (e) {
+      diagnostics.push({
+        severity: 'error',
+        message: `cannot read skillbridge.yaml: ${e instanceof Error ? e.message : String(e)}`,
+        code: 'PARSER-007',
+      });
+    }
+  }
+
+  const hasErrors = diagnostics.some((d) => d.severity === 'error');
+
+  if (opts.json) {
+    return {
+      exitCode: hasErrors ? 1 : 0,
+      output: jsonResult(true, {
+        path: normalizedPath,
+        valid: !hasErrors,
+        diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
+      }),
+    };
+  }
+
+  const lines: string[] = [];
+  if (hasErrors) {
+    lines.push(`Validation FAILED for ${normalizedPath}`);
+  } else {
+    lines.push(`Validation PASSED for ${normalizedPath}`);
+  }
+  if (diagnostics.length > 0) lines.push(formatDiagnostics(diagnostics));
+
+  return { exitCode: hasErrors ? 1 : 0, output: lines.join('\n') };
+}
+
+function runInspect(opts: CliOptions): { exitCode: ExitCode; output: string } {
+  const dirArg = opts.args[0];
+
+  if (!dirArg) {
+    const err: CliError = {
+      code: 'CLI-015',
+      message: 'missing directory argument for inspect command',
+    };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const normalizedPath = resolve(normalize(dirArg));
+  if (!existsSync(normalizedPath)) {
+    const err: CliError = { code: 'CLI-014', message: `directory not found: ${dirArg}` };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  const diagnostics: Diagnostic[] = [];
+  const info: Record<string, unknown> = { path: normalizedPath };
+
+  const skillMdPath = join(normalizedPath, 'SKILL.md');
+  if (!existsSync(skillMdPath)) {
+    const err: CliError = { code: 'CLI-014', message: `missing SKILL.md in ${normalizedPath}` };
+    if (opts.json) return { exitCode: 1, output: jsonError(err) };
+    return { exitCode: 1, output: formatError(err) };
+  }
+
+  try {
+    const content = readFileSync(skillMdPath, 'utf-8');
+    const parseResult = parseSkillMd(content, skillMdPath);
+    if (!parseResult.ok) {
+      diagnostics.push(...parseResult.error);
+      const err: CliError = {
+        code: 'CLI-012',
+        message: 'parse failed',
+        diagnostics: parseResult.error,
+      };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+    info.frontmatter = parseResult.value.frontmatter;
+    info.sections = parseResult.value.sections;
+    if (parseResult.value.extensions) info.extensions = parseResult.value.extensions;
+    if (parseResult.value.diagnostics) diagnostics.push(...parseResult.value.diagnostics);
+  } catch (e) {
+    diagnostics.push({
+      severity: 'error',
+      message: `cannot read SKILL.md: ${e instanceof Error ? e.message : String(e)}`,
+      code: 'PARSER-007',
+    });
+  }
+
+  const manifest: Record<string, unknown> = {};
+  const yamlPath = join(normalizedPath, 'skillbridge.yaml');
+  if (existsSync(yamlPath)) {
+    try {
+      const yamlContent = readFileSync(yamlPath, 'utf-8');
+      const yamlResult = parseSkillbridgeYaml(yamlContent);
+      if (yamlResult.ok) {
+        Object.assign(manifest, yamlResult.value.manifest);
+        if (yamlResult.value.diagnostics) diagnostics.push(...yamlResult.value.diagnostics);
+      } else {
+        diagnostics.push(...yamlResult.error);
+      }
+    } catch (e) {
+      diagnostics.push({
+        severity: 'warning',
+        message: `cannot read skillbridge.yaml: ${e instanceof Error ? e.message : String(e)}`,
+        code: 'PARSER-007',
+      });
+    }
+  }
+  info.manifest = manifest;
+
+  const resourceDirs: string[] = [];
+  try {
+    const entries = readdirSync(normalizedPath, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory() && !entry.name.startsWith('.')) {
+        resourceDirs.push(entry.name);
+      }
+    }
+  } catch {
+    // ignore
+  }
+  info.resourceDirs = resourceDirs;
+
+  info.hasLicense = existsSync(join(normalizedPath, 'LICENSE'));
+  info.hasNotice = existsSync(join(normalizedPath, 'NOTICE'));
+
+  const hasErrors = diagnostics.some((d) => d.severity === 'error');
+
+  if (opts.json) {
+    return {
+      exitCode: hasErrors ? 1 : 0,
+      output: jsonResult(true, {
+        ...info,
+        diagnostics: diagnostics.length > 0 ? diagnostics : undefined,
+      }),
+    };
+  }
+
+  const lines: string[] = [];
+  lines.push(`Path: ${normalizedPath}`);
+
+  const fm = info.frontmatter as Record<string, unknown> | undefined;
+  if (fm) lines.push(formatFrontmatter(fm));
+  if (info.extensions) lines.push(`Extensions: ${JSON.stringify(info.extensions)}`);
+
+  const sections = info.sections as Array<{ heading: string; body: string }> | undefined;
+  if (sections) {
+    const s = formatSections(sections);
+    if (s) lines.push(s);
+  }
+
+  if (Object.keys(manifest).length > 0) {
+    lines.push(`Manifest: ${JSON.stringify(manifest, null, 2)}`);
+  }
+  if (resourceDirs.length > 0) {
+    lines.push(`Resource directories: ${resourceDirs.join(', ')}`);
+  }
+  lines.push(`License: ${info.hasLicense ? 'present' : 'absent'}`);
+  lines.push(`Notice: ${info.hasNotice ? 'present' : 'absent'}`);
+
+  if (diagnostics.length > 0) lines.push(formatDiagnostics(diagnostics));
+
+  return { exitCode: hasErrors ? 1 : 0, output: lines.join('\n') };
+}
+
+function runAdapters(
   opts: CliOptions,
   registry: LocalAdapterRegistry,
 ): { exitCode: ExitCode; output: string } {
-  const manifests = registry.listAdapters();
+  let manifests = registry.listAdapters();
 
-  if (opts.json) {
-    return { exitCode: 0, output: serializeJson({ ok: true, value: manifests }) };
+  if (opts.format) {
+    const fmt = opts.format;
+    manifests = manifests.filter(
+      (m) => m.supports.sourceFormats.includes(fmt) || m.supports.targetFormats.includes(fmt),
+    );
   }
 
-  return { exitCode: 0, output: formatAdapterTable(manifests) };
+  if (opts.json) {
+    return { exitCode: 0, output: jsonResult(true, manifests) };
+  }
+
+  return { exitCode: 0, output: formatAdapterTable(manifests, opts.detail) };
+}
+
+function runCapabilities(
+  opts: CliOptions,
+  registry: LocalAdapterRegistry,
+): { exitCode: ExitCode; output: string } {
+  if (opts.adapter) {
+    const manifests = registry.listAdapters();
+    const found = manifests.find((m) => m.name === opts.adapter);
+    if (!found) {
+      const err: CliError = { code: 'CLI-016', message: `unknown adapter '${opts.adapter}'` };
+      if (opts.json) return { exitCode: 1, output: jsonError(err) };
+      return { exitCode: 1, output: formatError(err) };
+    }
+
+    if (opts.json) {
+      return {
+        exitCode: 0,
+        output: jsonResult(true, { adapter: opts.adapter, capabilities: found.capabilities }),
+      };
+    }
+
+    const lines: string[] = [`Capabilities for adapter '${opts.adapter}':`];
+    for (const cap of found.capabilities) {
+      lines.push(`  ${cap}`);
+    }
+    return { exitCode: 0, output: lines.join('\n') };
+  }
+
+  const knownCaps = Object.keys(CAPABILITY_VOCABULARY) as Capability[];
+  const grouped: Record<string, Array<{ id: string; description: string }>> = {};
+
+  for (const cap of knownCaps) {
+    const def = CAPABILITY_VOCABULARY[cap];
+    const cat = def.category;
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push({ id: cap, description: def.description });
+  }
+
+  if (opts.json) {
+    return { exitCode: 0, output: jsonResult(true, grouped) };
+  }
+
+  const lines: string[] = ['IR Capability Vocabulary:', ''];
+  for (const [category, caps] of Object.entries(grouped)) {
+    lines.push(`  ${category}:`);
+    for (const c of caps) {
+      lines.push(`    - ${c.id.padEnd(22)} ${c.description}`);
+    }
+    lines.push('');
+  }
+  return { exitCode: 0, output: lines.join('\n') };
+}
+
+function runDoctor(
+  _opts: CliOptions,
+  registry: LocalAdapterRegistry,
+): { exitCode: ExitCode; output: string } {
+  const checks: Array<{ check: string; severity: string; status: string; message: string }> = [];
+
+  // Node.js version
+  const nodeVersion = process.version;
+  const nodeMajor = parseInt(nodeVersion.slice(1).split('.')[0], 10);
+  if (nodeMajor >= 20) {
+    checks.push({
+      check: 'node-version',
+      severity: 'info',
+      status: 'pass',
+      message: `Node.js ${nodeVersion}`,
+    });
+  } else {
+    checks.push({
+      check: 'node-version',
+      severity: 'warning',
+      status: 'warn',
+      message: `Node.js ${nodeVersion} — minimum recommended is 20.x`,
+    });
+  }
+
+  // Platform info
+  checks.push({
+    check: 'platform',
+    severity: 'info',
+    status: 'pass',
+    message: `OS: ${process.platform}, Arch: ${process.arch}, Host: ${hostname()}`,
+  });
+
+  // Adapter registrations
+  const manifests = registry.listAdapters();
+  checks.push({
+    check: 'adapters',
+    severity: 'info',
+    status: 'pass',
+    message: `${manifests.length} adapters registered`,
+  });
+  for (const m of manifests) {
+    checks.push({
+      check: `adapter:${m.name}`,
+      severity: 'info',
+      status: 'pass',
+      message: `${m.name}@${m.version} (${m.vendor})`,
+    });
+  }
+
+  // Environment (redacted)
+  const envVars: Array<{ name: string; value: string }> = [];
+  for (const [name, value] of Object.entries(process.env)) {
+    if (value !== undefined) {
+      envVars.push({ name, value: isSecretEnvVar(name) ? '****' : value });
+    }
+  }
+  envVars.sort((a, b) => a.name.localeCompare(b.name));
+  checks.push({
+    check: 'environment',
+    severity: 'info',
+    status: 'pass',
+    message: `${envVars.length} env vars (secrets redacted)`,
+  });
+
+  if (_opts.json) {
+    return { exitCode: 0, output: jsonResult(true, { checks }) };
+  }
+
+  const lines: string[] = ['SkillBridge Doctor — Local Environment Diagnostics', ''];
+  for (const c of checks) {
+    const icon = c.severity === 'warning' ? '!' : ' ';
+    lines.push(`  [${icon}] ${c.check}: ${c.message}`);
+  }
+
+  return { exitCode: 0, output: lines.join('\n') };
 }
 
 export async function main(argv?: string[]): Promise<ExitCode> {
   const args = argv ?? process.argv;
-  const { exitCode, output } = run(args);
+  const { exitCode, output } = await run(args);
   if (output) {
     if (exitCode === 0) {
       console.log(output);

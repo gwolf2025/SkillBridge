@@ -39,6 +39,7 @@
 ## Backlog — CLI and Integration
 
 - [x] **cli**: Implement CLI foundation with `skillbridge convert`, `skillbridge list-adapters`, `--help`, `--version`, `--json`, structured errors, exit codes; 20 unit + 10 integration tests
+- [x] **cli**: Implement 6 CLI subcommands — `parse`, `validate`, `inspect`, `adapters`, `capabilities`, `doctor`; 32 unit + 13 integration tests; secret redaction
 - [ ] **cli**: Implement `skillbridge install` and `skillbridge verify` subcommands
 - [ ] **integration**: Write cross-package integration tests for full pipeline flows
 - [ ] **integration**: Write cross-package integration tests for full pipeline flows

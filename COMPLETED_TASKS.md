@@ -29,6 +29,7 @@
 ---
 
 | 2026-07-29 | CLI foundation — `skillbridge convert`, `list-adapters`, `--help`, `--version`, `--json`, structured errors, exit codes; 20 unit + 10 integration tests | APPROVED — 14/14 AC met, zero findings |
+| 2026-07-29 | Implement 6 CLI subcommands — `parse`, `validate`, `inspect`, `adapters`, `capabilities`, `doctor`; 32 unit + 13 integration tests; secret redaction | APPROVED — 37/37 AC met, 1 MEDIUM finding fixed during repair |
 
 ---
 
