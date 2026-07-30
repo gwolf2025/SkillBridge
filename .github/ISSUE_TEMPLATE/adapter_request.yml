@@ -1,0 +1,42 @@
+name: Adapter Request
+description: Request support for a new agent ecosystem
+labels: [adapter, enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new adapter. Please provide information about the source format.
+  - type: input
+    id: ecosystem
+    attributes:
+      label: Agent / Platform Name
+      placeholder: 'e.g., Cursor, Windsurf, Copilot'
+    validations:
+      required: true
+  - type: input
+    id: format
+    attributes:
+      label: Skill Format
+      description: What format are skills defined in?
+      placeholder: 'e.g., markdown with YAML frontmatter, JSON, YAML'
+    validations:
+      required: true
+  - type: textarea
+    id: fields
+    attributes:
+      label: Known Frontmatter Fields
+      description: List known metadata fields and their types
+      placeholder: |
+        - name: string (required)
+        - description: string (optional)
+        - capabilities: string[] (optional)
+  - type: textarea
+    id: documentation
+    attributes:
+      label: Documentation Links
+      description: Links to official format documentation
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example Skills
+      description: Links or examples of skills in this format

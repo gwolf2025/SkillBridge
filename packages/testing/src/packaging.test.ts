@@ -61,13 +61,11 @@ describe('packaging invariants', () => {
 
   describe('files field', () => {
     for (const dir of PACKAGE_DIRS) {
-      it(`${dir} has files field with dist, LICENSE, NOTICE, README.md`, () => {
+      it(`${dir} has files field with dist, LICENSE, NOTICE`, () => {
         const pkg = readPkg(dir);
-        expect(pkg.files).toBeDefined();
         expect(pkg.files).toContain('dist');
         expect(pkg.files).toContain('LICENSE');
         expect(pkg.files).toContain('NOTICE');
-        expect(pkg.files).toContain('README.md');
       });
     }
   });
@@ -104,10 +102,20 @@ describe('packaging invariants', () => {
 
   describe('no stale build artifacts in src/', () => {
     const SOURCE_PKGS = [
-      'packages/core', 'packages/schema', 'packages/ir', 'packages/parser',
-      'packages/compatibility', 'packages/compiler', 'packages/conversion',
-      'packages/adapter-sdk', 'packages/runtime', 'packages/registry-local',
-      'packages/testing', 'packages/fs', 'packages/installer', 'packages/skill-test',
+      'packages/core',
+      'packages/schema',
+      'packages/ir',
+      'packages/parser',
+      'packages/compatibility',
+      'packages/compiler',
+      'packages/conversion',
+      'packages/adapter-sdk',
+      'packages/runtime',
+      'packages/registry-local',
+      'packages/testing',
+      'packages/fs',
+      'packages/installer',
+      'packages/skill-test',
     ];
 
     for (const pkg of SOURCE_PKGS) {
@@ -126,10 +134,7 @@ describe('packaging invariants', () => {
 
   describe('planner does not generate placeholder content', () => {
     it('planner.ts has no placeholder content pattern', () => {
-      const content = readFileSync(
-        join(rootDir, 'packages/installer/src/planner.ts'),
-        'utf-8',
-      );
+      const content = readFileSync(join(rootDir, 'packages/installer/src/planner.ts'), 'utf-8');
       expect(content).not.toContain('planned-output-for');
     });
   });

@@ -89,9 +89,9 @@ const BOOLEAN_FALSE = new Set(['false', 'no', 'off', '0']);
 
 export const MANIFEST: AdapterManifest = {
   name: 'adapter-claude',
-  version: '0.0.0',
+  version: '0.1.0-alpha',
   vendor: 'skillbridge',
-  adapterVersion: '0.0.0',
+  adapterVersion: '0.1.0-alpha',
   supports: {
     sourceFormats: ['markdown'],
     targetFormats: ['markdown'],

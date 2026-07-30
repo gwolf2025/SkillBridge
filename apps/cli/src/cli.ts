@@ -1498,5 +1498,6 @@ export async function main(argv?: string[]): Promise<ExitCode> {
       console.error(output);
     }
   }
-  return exitCode;
+  if (typeof argv !== 'undefined') return exitCode;
+  process.exit(exitCode);
 }

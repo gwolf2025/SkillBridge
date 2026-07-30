@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
+    "prepack": "node -e \"const f=require(\\\"fs\\\");const p=require(\\\"path\\\");function w(d){try{f.readdirSync(d).forEach(e=\u003e{const s=p.join(d,e);if(f.statSync(s).isDirectory())w(s);else if(e.includes(\\\".test.\\\"))f.rmSync(s)})}catch(e){}}w(\\\"dist\\\")\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -30,8 +31,7 @@
   "files": [
     "dist",
     "LICENSE",
-    "NOTICE",
-    "README.md"
+    "NOTICE"
   ],
   "dependencies": {
     "@skillbridge/adapter-claude": "workspace:*",
