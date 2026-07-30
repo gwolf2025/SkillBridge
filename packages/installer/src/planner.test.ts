@@ -59,14 +59,13 @@ describe('plan', () => {
     expect(result.ok).toBe(false);
   });
 
-  it('generates integrity manifest', () => {
+  it('does not generate integrity manifest at plan time (deferred to executor)', () => {
     const adapter = makeAdapter({ steps: ['install'] });
     const ctx = { source: '', normalized: {}, manifest: adapter.manifest };
     const result = plan(adapter, ctx);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.manifest).toBeDefined();
-      expect(result.value.manifest!.files).toBeDefined();
+      expect(result.value.manifest).toBeUndefined();
     }
   });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -99,6 +99,38 @@ describe('packaging invariants', () => {
       if (pkg.bin) {
         expect(pkg.bin.skillbridge).toBe('./dist/index.js');
       }
+    });
+  });
+
+  describe('no stale build artifacts in src/', () => {
+    const SOURCE_PKGS = [
+      'packages/core', 'packages/schema', 'packages/ir', 'packages/parser',
+      'packages/compatibility', 'packages/compiler', 'packages/conversion',
+      'packages/adapter-sdk', 'packages/runtime', 'packages/registry-local',
+      'packages/testing', 'packages/fs', 'packages/installer', 'packages/skill-test',
+    ];
+
+    for (const pkg of SOURCE_PKGS) {
+      it(`${pkg}/src has no .d.ts or .js files (stale build artifacts)`, () => {
+        const srcDir = join(rootDir, pkg, 'src');
+        if (!existsSync(srcDir)) return; // skip if no src dir
+        const entries = readdirSync(srcDir, { recursive: true, withFileTypes: true });
+        const stale = entries
+          .filter((e) => e.isFile())
+          .map((e) => join(e.parentPath, e.name))
+          .filter((f) => /\.(d\.ts|js|js\.map|d\.ts\.map)$/.test(f));
+        expect(stale).toEqual([]);
+      });
+    }
+  });
+
+  describe('planner does not generate placeholder content', () => {
+    it('planner.ts has no placeholder content pattern', () => {
+      const content = readFileSync(
+        join(rootDir, 'packages/installer/src/planner.ts'),
+        'utf-8',
+      );
+      expect(content).not.toContain('planned-output-for');
     });
   });
 });

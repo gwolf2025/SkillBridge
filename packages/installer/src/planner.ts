@@ -13,8 +13,6 @@ import type { Result } from '@skillbridge/core';
 import { resolveProjectScope, resolveUserScope, resolveCustomScope, toPosixPath } from './paths.js';
 import { inspect } from './inspector.js';
 import { detect } from './conflict.js';
-import { generate as generateManifest } from './manifest.js';
-import type { IntegrityManifest } from './manifest.js';
 import type { ResolvedInstallPlan } from './dryrun.js';
 
 export interface PlannerOptions {
@@ -74,19 +72,6 @@ export function plan(
   }
 
   const conflicts: ConflictInfo[] = [];
-  let manifest: IntegrityManifest | undefined;
-
-  const plannedFiles: Record<string, string> = {};
-  for (const dp of destinationPaths) {
-    plannedFiles[dp] = `planned-output-for-${dp}`;
-  }
-
-  const manifestResult = generateManifest(plannedFiles);
-  if (!manifestResult.ok) {
-    diagnostics.push(manifestResult.error);
-  } else {
-    manifest = manifestResult.value;
-  }
 
   for (const dp of destinationPaths) {
     const stateResult = inspect(dp);
@@ -97,7 +82,7 @@ export function plan(
     const state = stateResult.value;
 
     if (state.exists && state.isFile) {
-      const conflictResult = detect(dp, plannedFiles[dp] ?? '');
+      const conflictResult = detect(dp, '');
       if (!conflictResult.ok) {
         diagnostics.push(conflictResult.error);
       } else if (conflictResult.value) {
@@ -149,7 +134,6 @@ export function plan(
     overwritePolicy,
     conflicts: conflicts.length > 0 ? conflicts : undefined,
     backupPlan: backupPlan.length > 0 ? backupPlan : undefined,
-    manifest,
     customPath: options?.customPath ?? adapterPlan.customPath,
   };
 

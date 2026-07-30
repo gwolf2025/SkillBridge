@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname, resolve, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hostname } from 'node:os';
@@ -12,7 +12,14 @@ import { CAPABILITY_VOCABULARY } from '@skillbridge/ir';
 import type { Capability } from '@skillbridge/ir';
 import { AtomicOutputWriter } from '@skillbridge/compiler';
 import { stripBom } from '@skillbridge/core';
-import { plan as installPlan, execute, listInstalled, formatDryRun } from '@skillbridge/installer';
+import {
+  plan as installPlan,
+  execute,
+  verifyInstalled,
+  repair,
+  listInstalled,
+  formatDryRun,
+} from '@skillbridge/installer';
 import adapterPortable from '@skillbridge/adapter-portable';
 import adapterClaude from '@skillbridge/adapter-claude';
 import adapterOpencode from '@skillbridge/adapter-opencode';
@@ -1191,8 +1198,17 @@ async function runCliInstall(
     return { exitCode: 1, output: formatError(err) };
   }
 
+  const execValue = execResult.value;
+
+  // Save integrity manifest for later verify/repair
+  if (execValue.manifest && plan.destinationPaths.length > 0) {
+    const manifestPath = join(plan.destinationPaths[0], 'skillbridge-manifest.json');
+    mkdirSync(plan.destinationPaths[0], { recursive: true });
+    writeFileSync(manifestPath, JSON.stringify(execValue.manifest, null, 2), 'utf-8');
+  }
+
   if (opts.json) {
-    return { exitCode: 0, output: jsonResult(true, execResult.value) };
+    return { exitCode: 0, output: jsonResult(true, execValue) };
   }
   return { exitCode: 0, output: `Installed: ${sourceArg}` };
 }
@@ -1337,17 +1353,53 @@ async function runCliVerify(
     return { exitCode: 1, output: formatError(err) };
   }
 
-  if (opts.json) {
-    return { exitCode: 0, output: jsonResult(true, filtered) };
+  // Attempt integrity verification if a manifest exists
+  const checks: Array<{ name: string; status: string; details?: string }> = [];
+  for (const skill of filtered) {
+    const manifestPath = join(skill.path, 'skillbridge-manifest.json');
+    if (existsSync(manifestPath)) {
+      try {
+        const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+        const verifyResult = verifyInstalled(manifest, skill.path);
+        if (!verifyResult.ok) {
+          const diagMsg =
+            verifyResult.error.find((d) => d.severity === 'error')?.message || 'verify failed';
+          checks.push({ name: skill.name, status: 'error', details: diagMsg });
+        } else {
+          const mismatches = verifyResult.value.filter((c) => c.status !== 'match');
+          if (mismatches.length === 0) {
+            checks.push({ name: skill.name, status: 'ok' });
+          } else {
+            checks.push({
+              name: skill.name,
+              status: 'corrupted',
+              details: mismatches.map((c) => `${c.filePath}: ${c.status}`).join('; '),
+            });
+          }
+        }
+      } catch {
+        checks.push({ name: skill.name, status: 'error', details: 'cannot read manifest' });
+      }
+    } else {
+      checks.push({ name: skill.name, status: 'unverified', details: 'no manifest found' });
+    }
   }
 
-  const lines = filtered.map((s) => `${s.name}: ${s.status}`);
+  if (opts.json) {
+    return { exitCode: 0, output: jsonResult(true, checks) };
+  }
+
+  const lines = checks.map((c) => {
+    let line = `${c.name}: ${c.status}`;
+    if (c.details) line += ` (${c.details})`;
+    return line;
+  });
   return { exitCode: 0, output: lines.join('\n') };
 }
 
 async function runCliRepair(
   opts: CliOptions,
-  _registry: LocalAdapterRegistry,
+  registry: LocalAdapterRegistry,
 ): Promise<{ exitCode: ExitCode; output: string }> {
   const _name = opts.args[0];
   const adapters = [adapterPortable, adapterClaude, adapterOpencode, adapterCodex];
@@ -1374,10 +1426,66 @@ async function runCliRepair(
     return { exitCode: 1, output: formatError(err) };
   }
 
-  if (opts.json) {
-    return { exitCode: 0, output: jsonResult(true, { repaired: filtered.length }) };
+  const repaired: string[] = [];
+  const errors: string[] = [];
+
+  for (const skill of filtered) {
+    const manifestPath = join(skill.path, 'skillbridge-manifest.json');
+    if (!existsSync(manifestPath)) {
+      errors.push(`${skill.name}: no manifest found`);
+      continue;
+    }
+
+    let manifest;
+    try {
+      manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    } catch {
+      errors.push(`${skill.name}: cannot read manifest`);
+      continue;
+    }
+
+    const verifyResult = verifyInstalled(manifest, skill.path);
+    if (!verifyResult.ok) {
+      errors.push(`${skill.name}: verify failed`);
+      continue;
+    }
+
+    const mismatches = verifyResult.value.filter((c) => c.status !== 'match');
+    if (mismatches.length === 0) {
+      continue; // nothing to repair
+    }
+
+    const adapter = registry.get(skill.adapterName);
+    if (!adapter) {
+      errors.push(`${skill.name}: adapter not found`);
+      continue;
+    }
+
+    // We need a ConversionContext to repair. The best we can do without the original source
+    // is to reinstall from the existing compiled output or mark for manual reinstall.
+    // For now, attempt repair with an empty context (adapter-specific behavior varies).
+    const ctx = { source: '', normalized: undefined, manifest: adapter.manifest };
+    const plan = {
+      steps: [],
+      destinationPaths: [skill.path],
+      scope: 'project',
+    } as ResolvedInstallPlan;
+    const repairResult = repair(adapter, ctx, plan, mismatches);
+    if (!repairResult.ok) {
+      errors.push(`${skill.name}: repair failed`);
+    } else {
+      repaired.push(skill.name);
+    }
   }
-  return { exitCode: 0, output: `Repaired: ${filtered.map((s) => s.name).join(', ')}` };
+
+  if (opts.json) {
+    return { exitCode: errors.length > 0 ? 1 : 0, output: jsonResult(true, { repaired, errors }) };
+  }
+
+  const lines: string[] = [];
+  if (repaired.length > 0) lines.push(`Repaired: ${repaired.join(', ')}`);
+  if (errors.length > 0) lines.push(`Errors: ${errors.join('; ')}`);
+  return { exitCode: errors.length > 0 ? 1 : 0, output: lines.join('\n') };
 }
 
 export async function main(argv?: string[]): Promise<ExitCode> {

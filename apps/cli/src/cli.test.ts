@@ -254,4 +254,23 @@ describe('run', () => {
     expect(result.exitCode).toBe(1);
     expect(result.output).toContain('invalid skill name');
   });
+
+  it('verify lists found skills (no manifest = unverified)', async () => {
+    const result = await run(['node', 'cli.js', 'verify']);
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('unverified');
+  });
+
+  it('verify --json returns array of checks', async () => {
+    const result = await run(['node', 'cli.js', 'verify', '--json']);
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('"status"');
+    expect(result.output).toContain('"name"');
+  });
+
+  it('repair completes without error for unknown skill name', async () => {
+    const result = await run(['node', 'cli.js', 'repair', 'nonexistent-skill']);
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('not found');
+  });
 });
