@@ -9,7 +9,7 @@ import type {
 } from '@skillbridge/adapter-sdk';
 import type { CompatibilityReport, SecurityImpactReport } from '@skillbridge/compatibility';
 
-vi.mock('../../../compatibility/src/index.js', () => ({
+vi.mock('@skillbridge/compatibility', () => ({
   analyzeCompatibility: vi.fn(),
   assessSecurityImpact: vi.fn(),
 }));
