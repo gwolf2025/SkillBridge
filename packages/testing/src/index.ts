@@ -115,3 +115,4 @@ export {
   CODE_ANALYZER_SKILL,
   VENDOR_HOOKS_SKILL,
 } from './examples.js';
+export { DEEP_YAML_FIXTURE, DEEP_DIR_FIXTURE } from './perf-fixtures.js';

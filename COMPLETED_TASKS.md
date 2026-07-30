@@ -64,4 +64,8 @@
 
 ---
 
+| 2026-07-29 | Resource limits — nesting depth (FS-016), total size (FS-017), YAML complexity (PARSER-014/015/016), diagnostic count (CONV-013), output size (CONV-014), time budget (CONV-015); performance fixtures | APPROVED — 9/9 AC met, zero findings |
+
+---
+
 _Managed by the loop-engineering workflow. Do not edit manually unless you understand the implications for the active agent session._

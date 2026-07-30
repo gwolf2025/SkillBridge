@@ -10,6 +10,69 @@ import type {
 } from '../../ir/src/index.js';
 import { validatePackageManifest } from '../../ir/src/index.js';
 
+export interface ParserYamlOptions {
+  maxDepth?: number;
+  maxKeys?: number;
+  maxStringLength?: number;
+}
+
+const DEFAULT_YAML_OPTIONS: Required<ParserYamlOptions> = {
+  maxDepth: 20,
+  maxKeys: 1000,
+  maxStringLength: 10000,
+};
+
+function checkYamlComplexity(
+  value: unknown,
+  opts: Required<ParserYamlOptions>,
+  path: string,
+): Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+  let keyCount = 0;
+
+  function walk(v: unknown, depth: number): void {
+    if (opts.maxDepth > 0 && depth > opts.maxDepth) {
+      diagnostics.push({
+        severity: 'warning',
+        message: `YAML nesting depth limit (${opts.maxDepth}) exceeded at ${path}`,
+        code: 'PARSER-014',
+      });
+      return;
+    }
+    if (typeof v === 'string' && opts.maxStringLength > 0 && v.length > opts.maxStringLength) {
+      diagnostics.push({
+        severity: 'warning',
+        message: `YAML string length limit (${opts.maxStringLength}) exceeded at ${path}`,
+        code: 'PARSER-016',
+      });
+    }
+    if (v !== null && typeof v === 'object') {
+      if (Array.isArray(v)) {
+        for (const item of v) {
+          walk(item, depth + 1);
+        }
+      } else {
+        const entries = Object.entries(v as Record<string, unknown>);
+        keyCount += entries.length;
+        if (opts.maxKeys > 0 && keyCount > opts.maxKeys) {
+          diagnostics.push({
+            severity: 'warning',
+            message: `YAML total key count limit (${opts.maxKeys}) exceeded at ${path}`,
+            code: 'PARSER-015',
+          });
+          return;
+        }
+        for (const [, val] of entries) {
+          walk(val, depth + 1);
+        }
+      }
+    }
+  }
+
+  walk(value, 0);
+  return diagnostics;
+}
+
 export type ParserErrorCode =
   | 'PARSER-001' // missing SKILL.md
   | 'PARSER-002' // malformed YAML in frontmatter
@@ -212,6 +275,9 @@ export function parseSkillMd(content: string, file?: string): Result<SkillMdResu
   const extensions: Record<string, unknown> = {};
   const rawFmLines = rawFrontmatter.split('\n');
 
+  const yamlDiags = checkYamlComplexity(record, DEFAULT_YAML_OPTIONS, file ?? 'SKILL.md');
+  diagnostics.push(...yamlDiags);
+
   for (const [key, value] of Object.entries(record)) {
     if (KNOWN_FRONTMATTER_FIELDS.has(key)) {
       frontmatter[key] = value;
@@ -320,6 +386,9 @@ export function parseSkillbridgeYaml(content: string): Result<SkillbridgeYamlRes
       ],
     };
   }
+
+  const yamlDiags = checkYamlComplexity(parsed, DEFAULT_YAML_OPTIONS, 'skillbridge.yaml');
+  diagnostics.push(...yamlDiags);
 
   const knownFields = new Set([
     'name',

@@ -65,6 +65,9 @@ export interface ConversionOptions {
   targetAdapterName?: string;
   policy?: PolicyMode;
   options?: Record<string, unknown>;
+  maxDiagnostics?: number;
+  maxOutputSizeBytes?: number;
+  maxConversionTimeMs?: number;
 }
 
 function policyDecision(
@@ -230,7 +233,26 @@ export class ConversionPipeline {
     const diagnostics: Diagnostic[] = [];
     const fieldProvenances: FieldProvenance[] = [];
     const rawPolicy: string | undefined = options?.policy;
+    const maxDiags = options?.maxDiagnostics ?? 500;
+    const maxOutputSize = options?.maxOutputSizeBytes ?? 50 * 1024 * 1024;
+    const maxTimeMs = options?.maxConversionTimeMs ?? 120000;
+    const startWall = Date.now();
     let policy: PolicyMode = 'safe';
+    let timedOut = false;
+
+    function checkTimeBudget(): boolean {
+      if (maxTimeMs > 0 && Date.now() - startWall > maxTimeMs && !timedOut) {
+        timedOut = true;
+        diagnostics.push({
+          severity: 'error',
+          message: `conversion time budget (${maxTimeMs}ms) exceeded`,
+          code: 'CONV-015',
+          source: 'pipeline',
+        });
+        return false;
+      }
+      return !timedOut;
+    }
 
     if (rawPolicy === 'relaxed') {
       diagnostics.push({
@@ -271,6 +293,8 @@ export class ConversionPipeline {
       });
     };
 
+    if (!checkTimeBudget()) return { ok: false, error: diagnostics };
+
     let parsed: unknown;
     try {
       parsed = sourceAdapter.parse(source);
@@ -286,6 +310,8 @@ export class ConversionPipeline {
     }
 
     let normalizedSkill: NormalizedSkill | undefined;
+    if (!checkTimeBudget()) return { ok: false, error: diagnostics };
+
     if (sourceAdapter.normalize) {
       try {
         normalizedSkill = sourceAdapter.normalize(source, parsed);
@@ -408,10 +434,22 @@ export class ConversionPipeline {
       return { ok: false, error: diagnostics };
     }
 
+    if (maxDiags > 0 && diagnostics.length > maxDiags) {
+      diagnostics.length = maxDiags;
+      diagnostics.push({
+        severity: 'error',
+        message: `diagnostic count limit (${maxDiags}) exceeded — truncating`,
+        code: 'CONV-013',
+        source: 'pipeline',
+      });
+    }
+
     createConversionContext(source, parsed, sourceAdapter.manifest, {
       irPackage: skill,
       extra: options?.options,
     });
+
+    if (!checkTimeBudget()) return { ok: false, error: diagnostics };
 
     let compiled: unknown;
     try {
@@ -425,6 +463,21 @@ export class ConversionPipeline {
         source: `adapter:${targetAdapter.manifest.name}`,
       });
       return { ok: false, error: diagnostics };
+    }
+
+    if (maxOutputSize > 0) {
+      const size =
+        typeof compiled === 'string'
+          ? Buffer.byteLength(compiled, 'utf-8')
+          : JSON.stringify(compiled).length;
+      if (size > maxOutputSize) {
+        diagnostics.push({
+          severity: 'warning',
+          message: `output size (${size} bytes) exceeds limit (${maxOutputSize} bytes)`,
+          code: 'CONV-014',
+          source: 'pipeline',
+        });
+      }
     }
 
     const manifest = generateManifest(compiled, targetAdapter.manifest.name);

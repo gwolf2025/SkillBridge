@@ -60,6 +60,7 @@
 - [x] **docs/cli**: Create CLI usage documentation — 19 sections covering all 13 implemented commands, error codes, policies, permissions, dry-run, rollback, troubleshooting
 - [x] **security**: Security audit — 11 findings (3 CRITICAL, 8 HIGH) fixed; SECURITY_AUDIT.md; regression tests
 - [x] **win32**: Windows compatibility audit — reserved names, BOM stripping, separator-agnostic traversal, case-insensitive paths; 23 new tests
+- [x] **limits**: Resource limits — nesting depth (FS-016), package size (FS-017), YAML complexity (PARSER-014/015/016), diagnostics (CONV-013), output size (CONV-014), time budget (CONV-015); performance fixtures
 - [ ] **testing**: Replace all placeholder test suites with meaningful tests
 - [ ] **testing**: Write adapter contract tests — each adapter must pass the same contract suite
 - [ ] **fixtures**: Add fixture SKILL.md files for every source format and edge case

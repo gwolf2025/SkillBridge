@@ -6,6 +6,8 @@ export interface FsLoaderOptions {
   maxFileSizeBytes?: number;
   maxFileCount?: number;
   followSymlinks?: boolean;
+  maxNestingDepth?: number;
+  maxTotalSizeBytes?: number;
 }
 
 export interface LoadedFile {
@@ -34,6 +36,8 @@ const DEFAULT_OPTIONS: Required<FsLoaderOptions> = {
   maxFileSizeBytes: 10 * 1024 * 1024,
   maxFileCount: 1000,
   followSymlinks: false,
+  maxNestingDepth: 20,
+  maxTotalSizeBytes: 100 * 1024 * 1024,
 };
 
 const SCRIPT_EXTENSIONS = new Set([
@@ -259,7 +263,17 @@ async function walkDirectory(
   opts: Required<FsLoaderOptions>,
   results: LoadedFile[],
   diagnostics: Diagnostic[],
+  depth = 0,
 ): Promise<void> {
+  if (opts.maxNestingDepth > 0 && depth > opts.maxNestingDepth) {
+    diagnostics.push({
+      severity: 'warning',
+      message: `nesting depth limit (${opts.maxNestingDepth}) exceeded at ${dirPath}`,
+      code: 'FS-016',
+    });
+    return;
+  }
+
   let entries: string[];
   try {
     entries = await readdir(dirPath);
@@ -329,7 +343,7 @@ async function walkDirectory(
     }
 
     if (entryStat.isDirectory()) {
-      await walkDirectory(absPath, rootPath, opts, results, diagnostics);
+      await walkDirectory(absPath, rootPath, opts, results, diagnostics, depth + 1);
       continue;
     }
 
@@ -384,6 +398,14 @@ export async function safeLoadDirectory(
   await walkDirectory(rootPath, rootPath, opts, files, diagnostics);
 
   const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+
+  if (opts.maxTotalSizeBytes > 0 && totalSize > opts.maxTotalSizeBytes) {
+    diagnostics.push({
+      severity: 'warning',
+      message: `total package size (${totalSize} bytes) exceeds limit (${opts.maxTotalSizeBytes} bytes)`,
+      code: 'FS-017',
+    });
+  }
 
   return {
     ok: true,
