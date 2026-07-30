@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { ConversionPipeline } from '../../../../packages/conversion/src/index.js';
-import { LocalAdapterRegistry } from '../../../../packages/registry-local/src/index.js';
-import { CompatibilityMatrix } from '../../../../packages/compatibility/src/index.js';
-import type { CompatibilityReport } from '../../../../packages/compatibility/src/index.js';
-import adapterPortable from '../../../../adapters/portable/src/index.js';
-import adapterClaude from '../../../../adapters/claude/src/index.js';
-import adapterOpencode from '../../../../adapters/opencode/src/index.js';
-import adapterCodex from '../../../../adapters/codex/src/index.js';
+import { ConversionPipeline } from '@skillbridge/conversion';
+import { LocalAdapterRegistry } from '@skillbridge/registry-local';
+import { CompatibilityMatrix } from '@skillbridge/compatibility';
+import type { CompatibilityReport } from '@skillbridge/compatibility';
+import adapterPortable from '@skillbridge/adapter-portable';
+import adapterClaude from '@skillbridge/adapter-claude';
+import adapterOpencode from '@skillbridge/adapter-opencode';
+import adapterCodex from '@skillbridge/adapter-codex';
 
 const FIXTURE_SKILL =
   '---\nname: cross-adapter-test\ndescription: A skill for cross-adapter compatibility testing.\n---\n\nPerform a compatibility check across all adapters.\n';

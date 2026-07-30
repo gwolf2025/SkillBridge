@@ -2,10 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { plan } from '../planner.js';
-import { formatDryRun } from '../dryrun.js';
-import { toPosixPath } from '../paths.js';
-import type { Adapter, ConversionContext } from '../../../adapter-sdk/src/index.js';
+import { plan } from '@skillbridge/installer';
+import { formatDryRun } from '@skillbridge/installer';
+import { toPosixPath } from '@skillbridge/installer';
+import type { Adapter, ConversionContext } from '@skillbridge/adapter-sdk';
 
 function makeAdapter(overrides?: Partial<Adapter>): Adapter {
   return {

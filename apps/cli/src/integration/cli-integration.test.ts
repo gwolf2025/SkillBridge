@@ -17,7 +17,7 @@ describe('CLI integration', () => {
   it('--version prints version and exits 0', async () => {
     const result = await run(['node', 'skillbridge', '--version']);
     expect(result.exitCode).toBe(0);
-    expect(result.output).toBe('0.0.0');
+    expect(result.output).toBe('0.1.0-alpha');
   });
 
   it('adapters lists at least 4 adapters', async () => {

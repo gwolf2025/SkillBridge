@@ -1,6 +1,6 @@
 import { describeAdapterContract } from './contract.js';
 import { InMemoryTestAdapter } from './adapter.js';
-import type { AdapterCapability } from '../../adapter-sdk/src/index.js';
+import type { AdapterCapability } from '@skillbridge/adapter-sdk';
 
 const allCaps: AdapterCapability[] = [
   'detect',

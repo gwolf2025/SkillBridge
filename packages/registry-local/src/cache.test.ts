@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { SkillPackageCache } from './cache.js';
-import type { AdapterManifest } from '../../adapter-sdk/src/index.js';
+import type { AdapterManifest } from '@skillbridge/adapter-sdk';
 
 function createFixture(
   dir: string,

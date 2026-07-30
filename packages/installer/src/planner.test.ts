@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { plan } from './planner.js';
-import type { Adapter, InstallPlan } from '../../adapter-sdk/src/index.js';
+import type { Adapter, InstallPlan } from '@skillbridge/adapter-sdk';
 
 function makeAdapter(installPlan?: InstallPlan): Adapter {
   return {

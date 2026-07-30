@@ -1,7 +1,7 @@
 import { resolve, relative, normalize } from 'node:path';
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok, fail } from '../../core/src/index.js';
-import { hasReservedWindowsFilename } from '../../core/src/win32.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok, fail } from '@skillbridge/core';
+import { hasReservedWindowsFilename } from '@skillbridge/core';
 
 function hasTraversal(rel: string): boolean {
   return (

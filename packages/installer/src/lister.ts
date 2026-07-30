@@ -1,9 +1,9 @@
 import { existsSync, readdirSync, statSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { Adapter } from '../../adapter-sdk/src/index.js';
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok } from '../../core/src/index.js';
-import { stripBom } from '../../core/src/win32.js';
+import type { Adapter } from '@skillbridge/adapter-sdk';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok } from '@skillbridge/core';
+import { stripBom } from '@skillbridge/core';
 
 export interface InstalledSkillInfo {
   name: string;

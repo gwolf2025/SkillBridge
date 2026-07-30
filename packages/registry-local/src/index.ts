@@ -13,7 +13,7 @@ import type {
   Result,
   Diagnostic,
   AdapterSelector,
-} from '../../adapter-sdk/src/index.js';
+} from '@skillbridge/adapter-sdk';
 
 export { SkillPackageCache } from './cache.js';
 export type {

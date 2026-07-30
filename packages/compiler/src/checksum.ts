@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { access } from 'node:fs/promises';
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok, fail } from '../../core/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok, fail } from '@skillbridge/core';
 
 export function computeSha256(input: string | Buffer): string {
   return createHash('sha256').update(input).digest('hex');

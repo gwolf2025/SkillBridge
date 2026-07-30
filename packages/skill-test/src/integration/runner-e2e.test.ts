@@ -2,11 +2,11 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { runSuite } from '../runner.js';
-import { writeJsonReport } from '../reporters/json-reporter.js';
-import { writeJunitXml } from '../reporters/junit-reporter.js';
-import { JSON_DISCLAIMER } from '../reporters/json-reporter.js';
-import type { SkillTestSuite } from '../index.js';
+import { runSuite } from '@skillbridge/skill-test';
+import { writeJsonReport } from '@skillbridge/skill-test';
+import { writeJunitXml } from '@skillbridge/skill-test';
+import { JSON_DISCLAIMER } from '@skillbridge/skill-test';
+import type { SkillTestSuite } from '@skillbridge/skill-test';
 
 describe('runner end-to-end', () => {
   let tmpDir: string;

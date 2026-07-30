@@ -2,6 +2,7 @@
 
 ## Completed
 
+- [x] **packaging**: Prepare SkillBridge for 0.1.0-alpha package build — version bump, public access, package-name imports, workspace deps, files/LICENSE/NOTICE per package, repository metadata, changeset, CHANGELOG, packaging tests, pnpm pack, local install verified
 - [x] **documentation**: Define SkillBridge 0.1.0-alpha product specification (SPECIFICATION.md), rewrite implementation backlog (TASKS.md), update ROADMAP.md
 - [x] **architecture**: Implement package dependency boundary enforcement — dependency-cruiser config, 50 boundary tests, ARCHITECTURE.md allowed-import matrix, `pnpm depcheck` in verify pipeline
 

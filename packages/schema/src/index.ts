@@ -1,4 +1,4 @@
-import type { Result, Diagnostic } from '../../core/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
 
 export interface Schema<T> {
   validate(value: unknown): Result<T, Diagnostic[]>;

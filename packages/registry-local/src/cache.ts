@@ -13,9 +13,9 @@ import {
 import { join, resolve, normalize, relative, sep, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok, fail } from '../../core/src/index.js';
-import type { AdapterManifest } from '../../adapter-sdk/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok, fail } from '@skillbridge/core';
+import type { AdapterManifest } from '@skillbridge/adapter-sdk';
 
 export interface CachedPackageEntry {
   name: string;

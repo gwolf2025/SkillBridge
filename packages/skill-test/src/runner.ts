@@ -1,7 +1,7 @@
 import { mkdtempSync, writeFileSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import type { Diagnostic } from '../../core/src/index.js';
+import type { Diagnostic } from '@skillbridge/core';
 import type { SkillTestSuite, SkillTestDefinition } from './index.js';
 import { evaluateAssertion } from './assertion-evaluator.js';
 import type { AssertionResult } from './assertion-evaluator.js';

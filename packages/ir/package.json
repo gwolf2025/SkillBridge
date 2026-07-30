@@ -1,16 +1,18 @@
 {
   "name": "@skillbridge/ir",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0-alpha",
+  "private": false,
   "description": "Vendor-neutral SkillBridge Intermediate Representation for AI-agent skills",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skillbridge/skillbridge.git"
+  },
+  "homepage": "https://github.com/skillbridge/skillbridge",
+  "bugs": {
+    "url": "https://github.com/skillbridge/skillbridge/issues"
+  },
   "license": "Apache-2.0",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
@@ -18,5 +20,21 @@
   },
   "devDependencies": {
     "typescript": "^5.7.0"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@skillbridge/core": "workspace:*",
+    "@skillbridge/schema": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   }
 }

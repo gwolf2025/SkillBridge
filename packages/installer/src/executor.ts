@@ -11,10 +11,10 @@ import {
 import { join, dirname, resolve, relative, normalize } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
-import type { Adapter, ConversionContext, Diagnostic } from '../../adapter-sdk/src/index.js';
+import type { Adapter, ConversionContext, Diagnostic } from '@skillbridge/adapter-sdk';
 import type { ResolvedInstallPlan } from './dryrun.js';
-import { ok } from '../../core/src/index.js';
-import type { Result } from '../../core/src/index.js';
+import { ok } from '@skillbridge/core';
+import type { Result } from '@skillbridge/core';
 import type { IntegrityManifest } from './manifest.js';
 import { generate as generateManifest } from './manifest.js';
 

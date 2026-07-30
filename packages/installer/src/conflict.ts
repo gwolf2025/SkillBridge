@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import type { ConflictInfo } from '../../adapter-sdk/src/index.js';
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok, fail } from '../../core/src/index.js';
+import type { ConflictInfo } from '@skillbridge/adapter-sdk';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok, fail } from '@skillbridge/core';
 
 function sha256(content: string): string {
   return createHash('sha256').update(content, 'utf-8').digest('hex');

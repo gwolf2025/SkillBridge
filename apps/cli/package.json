@@ -1,18 +1,12 @@
 {
   "name": "@skillbridge/cli",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0-alpha",
+  "private": false,
   "description": "SkillBridge command-line application — convert AI-agent skills across vendor formats",
   "license": "Apache-2.0",
   "type": "module",
   "bin": {
     "skillbridge": "./dist/index.js"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
   },
   "scripts": {
     "build": "tsc",
@@ -24,5 +18,39 @@
     "@types/node": "^22.13.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skillbridge/skillbridge.git"
+  },
+  "homepage": "https://github.com/skillbridge/skillbridge",
+  "bugs": {
+    "url": "https://github.com/skillbridge/skillbridge/issues"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@skillbridge/adapter-claude": "workspace:*",
+    "@skillbridge/adapter-codex": "workspace:*",
+    "@skillbridge/adapter-opencode": "workspace:*",
+    "@skillbridge/adapter-portable": "workspace:*",
+    "@skillbridge/adapter-sdk": "workspace:*",
+    "@skillbridge/compiler": "workspace:*",
+    "@skillbridge/conversion": "workspace:*",
+    "@skillbridge/core": "workspace:*",
+    "@skillbridge/installer": "workspace:*",
+    "@skillbridge/ir": "workspace:*",
+    "@skillbridge/parser": "workspace:*",
+    "@skillbridge/registry-local": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   }
 }

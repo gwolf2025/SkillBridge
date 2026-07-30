@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateJsonReport, JSON_DISCLAIMER } from './json-reporter.js';
-import type { SuiteResult } from '../runner.js';
+import type { SuiteResult } from '@skillbridge/skill-test';
 
 describe('generateJsonReport', () => {
   const result: SuiteResult = {

@@ -1,26 +1,44 @@
 {
   "name": "@skillbridge/conversion",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0-alpha",
+  "private": false,
   "description": "Orchestration of the complete conversion pipeline through SkillBridge IR",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skillbridge/skillbridge.git"
+  },
+  "homepage": "https://github.com/skillbridge/skillbridge",
+  "bugs": {
+    "url": "https://github.com/skillbridge/skillbridge/issues"
+  },
   "license": "Apache-2.0",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@skillbridge/adapter-sdk": "workspace:*",
+    "@skillbridge/compatibility": "workspace:*",
+    "@skillbridge/ir": "workspace:*",
+    "@skillbridge/parser": "workspace:*",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "typescript": "^5.7.0"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   }
 }

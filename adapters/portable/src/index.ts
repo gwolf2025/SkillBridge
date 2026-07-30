@@ -8,17 +8,17 @@ import type {
   InstallPlan,
   Result,
   Diagnostic,
-} from '../../../packages/adapter-sdk/src/index.js';
+} from '@skillbridge/adapter-sdk';
 import type {
   NormalizedSkill,
   Capability,
   Permission,
   SourceMetadata,
   IRVersion,
-} from '../../../packages/ir/src/index.js';
-import { isValidCapability } from '../../../packages/ir/src/index.js';
-import { parseSkillMd } from '../../../packages/parser/src/index.js';
-import type { SkillMdResult } from '../../../packages/parser/src/index.js';
+} from '@skillbridge/ir';
+import { isValidCapability } from '@skillbridge/ir';
+import { parseSkillMd } from '@skillbridge/parser';
+import type { SkillMdResult } from '@skillbridge/parser';
 
 export const MANIFEST: AdapterManifest = {
   name: 'adapter-portable',

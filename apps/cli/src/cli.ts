@@ -2,26 +2,21 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname, resolve, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hostname } from 'node:os';
-import { ConversionPipeline } from '../../../packages/conversion/src/index.js';
-import type { ConversionResult, PolicyMode } from '../../../packages/conversion/src/index.js';
-import { LocalAdapterRegistry } from '../../../packages/registry-local/src/index.js';
-import type { Diagnostic, AdapterManifest } from '../../../packages/adapter-sdk/src/index.js';
-import type { ResolvedInstallPlan } from '../../../packages/installer/src/index.js';
-import { parseSkillMd, parseSkillbridgeYaml } from '../../../packages/parser/src/index.js';
-import { CAPABILITY_VOCABULARY } from '../../../packages/ir/src/index.js';
-import type { Capability } from '../../../packages/ir/src/index.js';
-import { AtomicOutputWriter } from '../../../packages/compiler/src/index.js';
-import { stripBom } from '../../../packages/core/src/win32.js';
-import {
-  plan as installPlan,
-  execute,
-  listInstalled,
-  formatDryRun,
-} from '../../../packages/installer/src/index.js';
-import adapterPortable from '../../../adapters/portable/src/index.js';
-import adapterClaude from '../../../adapters/claude/src/index.js';
-import adapterOpencode from '../../../adapters/opencode/src/index.js';
-import adapterCodex from '../../../adapters/codex/src/index.js';
+import { ConversionPipeline } from '@skillbridge/conversion';
+import type { ConversionResult, PolicyMode } from '@skillbridge/conversion';
+import { LocalAdapterRegistry } from '@skillbridge/registry-local';
+import type { Diagnostic, AdapterManifest } from '@skillbridge/adapter-sdk';
+import type { ResolvedInstallPlan } from '@skillbridge/installer';
+import { parseSkillMd, parseSkillbridgeYaml } from '@skillbridge/parser';
+import { CAPABILITY_VOCABULARY } from '@skillbridge/ir';
+import type { Capability } from '@skillbridge/ir';
+import { AtomicOutputWriter } from '@skillbridge/compiler';
+import { stripBom } from '@skillbridge/core';
+import { plan as installPlan, execute, listInstalled, formatDryRun } from '@skillbridge/installer';
+import adapterPortable from '@skillbridge/adapter-portable';
+import adapterClaude from '@skillbridge/adapter-claude';
+import adapterOpencode from '@skillbridge/adapter-opencode';
+import adapterCodex from '@skillbridge/adapter-codex';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

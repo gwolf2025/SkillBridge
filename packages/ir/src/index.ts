@@ -1,5 +1,5 @@
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import type { Schema } from '../../schema/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import type { Schema } from '@skillbridge/schema';
 import {
   stringSchema,
   numberSchema,
@@ -9,7 +9,7 @@ import {
   objectSchema,
   optionalSchema,
   validate,
-} from '../../schema/src/index.js';
+} from '@skillbridge/schema';
 
 export type IRVersion = '0.1.0';
 

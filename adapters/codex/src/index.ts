@@ -9,14 +9,14 @@ import type {
   InstallPlan,
   Result,
   Diagnostic,
-} from '../../../packages/adapter-sdk/src/index.js';
+} from '@skillbridge/adapter-sdk';
 import type {
   NormalizedSkill,
   Capability,
   Permission,
   SourceMetadata,
   IRVersion,
-} from '../../../packages/ir/src/index.js';
+} from '@skillbridge/ir';
 
 export interface CodexSkillResult {
   name: string;

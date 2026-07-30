@@ -1,14 +1,10 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, resolve, normalize, isAbsolute, relative } from 'node:path';
 import * as yaml from 'js-yaml';
-import type { Result, Diagnostic, SourceLocation } from '../../core/src/index.js';
-import { hasReservedWindowsFilename, stripBom } from '../../core/src/win32.js';
-import type {
-  PackageManifest,
-  SkillPackageMeta,
-  SkillPackageResourceDirs,
-} from '../../ir/src/index.js';
-import { validatePackageManifest } from '../../ir/src/index.js';
+import type { Result, Diagnostic, SourceLocation } from '@skillbridge/core';
+import { hasReservedWindowsFilename, stripBom } from '@skillbridge/core';
+import type { PackageManifest, SkillPackageMeta, SkillPackageResourceDirs } from '@skillbridge/ir';
+import { validatePackageManifest } from '@skillbridge/ir';
 
 export interface ParserYamlOptions {
   maxDepth?: number;

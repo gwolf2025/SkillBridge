@@ -9,7 +9,7 @@
 
 ## Findings
 
-_No findings._
+_No findings recorded._
 
 ---
 
@@ -17,7 +17,7 @@ _No findings._
 
 | Question                 | Answer |
 | ------------------------ | ------ |
-| **Approved**             | —      |
-| **Repair Required**      | —      |
-| **Needs Human Decision** | —      |
+| **Approved**             |        |
+| **Repair Required**      |        |
+| **Needs Human Decision** |        |
 | **Total Findings**       | 0      |

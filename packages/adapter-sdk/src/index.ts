@@ -7,9 +7,9 @@
  * compilation, installation, invocation, verification, and diagnostics.
  */
 
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { SkillBridgeError } from '../../core/src/index.js';
-import type { NormalizedSkill, Permission } from '../../ir/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { SkillBridgeError } from '@skillbridge/core';
+import type { NormalizedSkill, Permission } from '@skillbridge/ir';
 
 export type { Result, Diagnostic, NormalizedSkill, Permission };
 export { SkillBridgeError };

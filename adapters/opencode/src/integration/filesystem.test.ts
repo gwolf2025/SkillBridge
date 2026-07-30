@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { OpenCodeAdapter } from '../index.js';
+import { OpenCodeAdapter } from '@skillbridge/adapter-opencode';
 
 const adapter = new OpenCodeAdapter();
 

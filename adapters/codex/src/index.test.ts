@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { describeAdapterContract } from '../../../packages/testing/src/index.js';
+import { describeAdapterContract } from '@skillbridge/testing';
 import { CodexAdapter } from './index.js';
 import type { CodexSkillResult } from './index.js';
 

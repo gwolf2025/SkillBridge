@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { PortableAdapter } from './index.js';
-import type { SkillMdResult } from '../../../packages/parser/src/index.js';
-import { describeAdapterContract } from '../../../packages/testing/src/index.js';
+import type { SkillMdResult } from '@skillbridge/parser';
+import { describeAdapterContract } from '@skillbridge/testing';
 
 const adapter = new PortableAdapter();
 

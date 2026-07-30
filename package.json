@@ -1,6 +1,6 @@
 {
   "name": "skillbridge",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha",
   "private": true,
   "description": "Write an AI skill once. Run it anywhere.",
   "license": "Apache-2.0",
@@ -17,7 +17,7 @@
     "depcheck": "depcruise --validate .dependency-cruiser.js packages/ adapters/ apps/ commercial/",
     "format": "prettier --write \"**/*.{ts,tsx,json,md,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md,yaml,yml}\"",
-    "verify": "pnpm format:check && pnpm lint && pnpm depcheck && pnpm typecheck && pnpm test:unit && pnpm test:integration && pnpm test:roundtrip && pnpm test:conversion && pnpm build"
+    "verify": "pnpm format:check \u0026\u0026 pnpm lint \u0026\u0026 pnpm depcheck \u0026\u0026 pnpm typecheck \u0026\u0026 pnpm test:unit \u0026\u0026 pnpm test:integration \u0026\u0026 pnpm test:roundtrip \u0026\u0026 pnpm test:conversion \u0026\u0026 pnpm build"
   },
   "devDependencies": {
     "@changesets/cli": "^2.28.1",
@@ -32,7 +32,7 @@
     "vitest": "^3.0.0"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": "\u003e=20.0.0"
   },
   "packageManager": "pnpm@11.17.0"
 }

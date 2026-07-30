@@ -7,9 +7,9 @@ import type {
   ConflictInfo,
   BackupEntry,
   Diagnostic,
-} from '../../adapter-sdk/src/index.js';
-import { ok } from '../../core/src/index.js';
-import type { Result } from '../../core/src/index.js';
+} from '@skillbridge/adapter-sdk';
+import { ok } from '@skillbridge/core';
+import type { Result } from '@skillbridge/core';
 import { resolveProjectScope, resolveUserScope, resolveCustomScope, toPosixPath } from './paths.js';
 import { inspect } from './inspector.js';
 import { detect } from './conflict.js';

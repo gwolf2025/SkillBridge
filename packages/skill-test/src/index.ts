@@ -1,5 +1,5 @@
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok, fail } from '../../core/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok, fail } from '@skillbridge/core';
 import {
   stringSchema,
   arraySchema,
@@ -7,8 +7,8 @@ import {
   objectSchema,
   optionalSchema,
   validate,
-} from '../../schema/src/index.js';
-import type { Schema } from '../../schema/src/index.js';
+} from '@skillbridge/schema';
+import type { Schema } from '@skillbridge/schema';
 
 // ── Input Types ──────────────────────────────────────────────
 

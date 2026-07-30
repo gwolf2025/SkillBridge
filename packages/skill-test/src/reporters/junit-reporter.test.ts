@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateJunitXml } from './junit-reporter.js';
 import { JSON_DISCLAIMER } from './json-reporter.js';
-import type { SuiteResult } from '../runner.js';
+import type { SuiteResult } from '@skillbridge/skill-test';
 
 describe('generateJunitXml', () => {
   const result: SuiteResult = {

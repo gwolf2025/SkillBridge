@@ -1,5 +1,5 @@
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import type { Capability, CapabilityRequirement, Permission } from '../../ir/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import type { Capability, CapabilityRequirement, Permission } from '@skillbridge/ir';
 
 export type { Capability, Permission, CapabilityRequirement };
 

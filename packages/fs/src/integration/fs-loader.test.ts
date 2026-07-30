@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { safeLoadDirectory, safeLoadFile } from '../index.js';
+import { safeLoadDirectory, safeLoadFile } from '@skillbridge/fs';
 
 function createTempDir(): string {
   return mkdtempSync(join(tmpdir(), 'fs-test-'));

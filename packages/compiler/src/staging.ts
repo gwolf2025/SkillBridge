@@ -1,8 +1,8 @@
 import { mkdtemp, mkdir, rm, rename, writeFile } from 'node:fs/promises';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok, fail } from '../../core/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok, fail } from '@skillbridge/core';
 import { validateOutputPath } from './safety.js';
 import { normalizeLineEndings } from './deterministic.js';
 

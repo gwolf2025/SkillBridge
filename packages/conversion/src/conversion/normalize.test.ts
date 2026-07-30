@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { normalizePackageToIR } from '../normalize.js';
-import type { NormalizationInput, FieldProvenance } from '../normalize.js';
-import type { SkillMdResult, SkillMdSection } from '../../../parser/src/index.js';
+import { normalizePackageToIR } from '@skillbridge/conversion';
+import type { NormalizationInput, FieldProvenance } from '@skillbridge/conversion';
+import type { SkillMdResult, SkillMdSection } from '@skillbridge/parser';
 
 function input(
   overrides: Partial<NormalizationInput> & { skillMd: SkillMdResult },

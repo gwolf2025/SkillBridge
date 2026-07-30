@@ -5,8 +5,8 @@ import type {
   InstallPlan,
   Result,
   Diagnostic,
-} from '../../adapter-sdk/src/index.js';
-import type { NormalizedSkill } from '../../ir/src/index.js';
+} from '@skillbridge/adapter-sdk';
+import type { NormalizedSkill } from '@skillbridge/ir';
 
 export interface InMemoryTestAdapterOptions {
   manifest: AdapterManifest;

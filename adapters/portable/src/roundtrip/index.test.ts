@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PortableAdapter } from '../index.js';
+import { PortableAdapter } from '@skillbridge/adapter-portable';
 
 const adapter = new PortableAdapter();
 

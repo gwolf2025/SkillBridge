@@ -1,6 +1,6 @@
 import { lstat, readdir, realpath, stat } from 'node:fs/promises';
 import { isAbsolute, join, resolve, normalize, relative, sep, extname } from 'node:path';
-import type { Result, Diagnostic } from '../../core/src/index.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
 
 export interface FsLoaderOptions {
   maxFileSizeBytes?: number;

@@ -4,17 +4,17 @@ import type {
   Result,
   Diagnostic,
   NormalizedSkill,
-} from '../../adapter-sdk/src/index.js';
-import { createConversionContext } from '../../adapter-sdk/src/index.js';
-import type { CompilationManifest, CapabilityRequirement, Permission } from '../../ir/src/index.js';
-import { analyzeCompatibility, assessSecurityImpact } from '../../compatibility/src/index.js';
+} from '@skillbridge/adapter-sdk';
+import { createConversionContext } from '@skillbridge/adapter-sdk';
+import type { CompilationManifest, CapabilityRequirement, Permission } from '@skillbridge/ir';
+import { analyzeCompatibility, assessSecurityImpact } from '@skillbridge/compatibility';
 import type {
   CompatibilityReport,
   SecurityImpactReport,
   TargetProfile,
   TargetCapabilitySupport,
   CompatibilityLevel,
-} from '../../compatibility/src/index.js';
+} from '@skillbridge/compatibility';
 import { normalizePackageToIR } from './normalize.js';
 import type { FieldProvenance } from './normalize.js';
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { categorizePermission, summarizePermissions, inspectPermissions } from './inspection.js';
 import type { PermissionCategory, PolicyHook, Permission } from './index.js';
-import type { NormalizedSkill, Provenance } from '../../ir/src/index.js';
+import type { NormalizedSkill, Provenance } from '@skillbridge/ir';
 
 describe('categorizePermission', () => {
   const cases: Array<{ resource: string; expected: PermissionCategory }> = [

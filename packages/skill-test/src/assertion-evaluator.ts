@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve, normalize, relative, sep } from 'node:path';
 import { createHash } from 'node:crypto';
-import type { Diagnostic } from '../../core/src/index.js';
+import type { Diagnostic } from '@skillbridge/core';
 import type {
   Assertion,
   ExpectTextAssertion,

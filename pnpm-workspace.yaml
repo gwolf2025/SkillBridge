@@ -4,4 +4,3 @@ packages:
   - 'adapters/*'
 allowBuilds:
   esbuild: true
-nodeLinker: hoisted

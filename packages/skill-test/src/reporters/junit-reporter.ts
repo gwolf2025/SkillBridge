@@ -1,5 +1,5 @@
 import { writeFileSync } from 'node:fs';
-import type { SuiteResult, TestResult } from '../runner.js';
+import type { SuiteResult, TestResult } from '@skillbridge/skill-test';
 import { JSON_DISCLAIMER } from './json-reporter.js';
 
 function escapeXml(s: string): string {

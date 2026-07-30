@@ -1,23 +1,20 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ConversionPipeline } from '../pipeline.js';
+import { ConversionPipeline } from '@skillbridge/conversion';
 import type {
   AdapterSelector,
   Adapter,
   NormalizedSkill,
   Result,
   Diagnostic,
-} from '../../../adapter-sdk/src/index.js';
-import type {
-  CompatibilityReport,
-  SecurityImpactReport,
-} from '../../../compatibility/src/index.js';
+} from '@skillbridge/adapter-sdk';
+import type { CompatibilityReport, SecurityImpactReport } from '@skillbridge/compatibility';
 
 vi.mock('../../../compatibility/src/index.js', () => ({
   analyzeCompatibility: vi.fn(),
   assessSecurityImpact: vi.fn(),
 }));
 
-import { analyzeCompatibility, assessSecurityImpact } from '../../../compatibility/src/index.js';
+import { analyzeCompatibility, assessSecurityImpact } from '@skillbridge/compatibility';
 
 function makeSelector(overrides?: Partial<AdapterSelector>): AdapterSelector {
   const adapter: Adapter = {

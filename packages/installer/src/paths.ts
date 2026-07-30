@@ -1,8 +1,8 @@
 import { resolve, normalize, sep } from 'node:path';
 import { homedir } from 'node:os';
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok, fail } from '../../core/src/index.js';
-import { hasReservedWindowsFilename } from '../../core/src/win32.js';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok, fail } from '@skillbridge/core';
+import { hasReservedWindowsFilename } from '@skillbridge/core';
 
 export function toPosixPath(p: string): string {
   return p.replace(/\\/g, '/');

@@ -3,11 +3,11 @@ import { readFileSync, existsSync, readdirSync, mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { rm } from 'node:fs/promises';
-import { AtomicOutputWriter } from '../staging.js';
-import { computeSha256, computeChecksums } from '../checksum.js';
-import { writeManifest } from '../manifest.js';
-import { canonicalStringify } from '../deterministic.js';
-import type { OutputManifest } from '../manifest.js';
+import { AtomicOutputWriter } from '@skillbridge/compiler';
+import { computeSha256, computeChecksums } from '@skillbridge/compiler';
+import { writeManifest } from '@skillbridge/compiler';
+import { canonicalStringify } from '@skillbridge/compiler';
+import type { OutputManifest } from '@skillbridge/compiler';
 
 describe('full deterministic compilation flow (integration)', () => {
   let baseDir: string;

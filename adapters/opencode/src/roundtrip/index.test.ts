@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { OpenCodeAdapter } from '../index.js';
+import { OpenCodeAdapter } from '@skillbridge/adapter-opencode';
 
 const adapter = new OpenCodeAdapter();
 

@@ -1,5 +1,5 @@
 import * as yaml from 'js-yaml';
-import type { Diagnostic, SourceLocation } from '../../core/src/index.js';
+import type { Diagnostic, SourceLocation } from '@skillbridge/core';
 import type {
   NormalizedSkill,
   PackageManifest,
@@ -14,8 +14,8 @@ import type {
   ExecutionRequirement,
   LicenseMetadata,
   Capability,
-} from '../../ir/src/index.js';
-import type { SkillMdResult, SkillMdSection } from '../../parser/src/index.js';
+} from '@skillbridge/ir';
+import type { SkillMdResult, SkillMdSection } from '@skillbridge/parser';
 
 export type FieldSource = 'frontmatter' | 'body-section' | 'skillbridge-yaml' | 'default';
 

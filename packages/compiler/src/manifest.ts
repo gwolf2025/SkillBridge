@@ -1,6 +1,6 @@
-import type { CompilationManifest } from '../../ir/src/index.js';
-import type { Result, Diagnostic } from '../../core/src/index.js';
-import { ok } from '../../core/src/index.js';
+import type { CompilationManifest } from '@skillbridge/ir';
+import type { Result, Diagnostic } from '@skillbridge/core';
+import { ok } from '@skillbridge/core';
 import { canonicalStringify } from './deterministic.js';
 import { AtomicOutputWriter } from './staging.js';
 import { computeSha256 } from './checksum.js';

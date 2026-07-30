@@ -1,4 +1,4 @@
-import type { Capability, CapabilityRequirement } from '../../ir/src/index.js';
+import type { Capability, CapabilityRequirement } from '@skillbridge/ir';
 import { describe, it, expect } from 'vitest';
 import {
   compareCapabilities,

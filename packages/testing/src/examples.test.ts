@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parseSkillMd } from '../../parser/src/index.js';
-import { validateNormalizedSkill } from '../../ir/src/index.js';
+import { parseSkillMd } from '@skillbridge/parser';
+import { validateNormalizedSkill } from '@skillbridge/ir';
 import {
   HELLO_WORLD_SKILL,
   FILE_ORGANIZER_SKILL,

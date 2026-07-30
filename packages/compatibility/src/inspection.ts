@@ -1,5 +1,5 @@
-import type { Diagnostic } from '../../core/src/index.js';
-import type { NormalizedSkill, Permission, Provenance } from '../../ir/src/index.js';
+import type { Diagnostic } from '@skillbridge/core';
+import type { NormalizedSkill, Permission, Provenance } from '@skillbridge/ir';
 
 export type PermissionCategory =
   | 'filesystem'

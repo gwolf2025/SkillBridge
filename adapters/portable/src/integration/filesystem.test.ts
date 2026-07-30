@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { PortableAdapter } from '../index.js';
+import { PortableAdapter } from '@skillbridge/adapter-portable';
 
 const adapter = new PortableAdapter();
 

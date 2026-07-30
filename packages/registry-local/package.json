@@ -1,16 +1,18 @@
 {
   "name": "@skillbridge/registry-local",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0-alpha",
+  "private": false,
   "description": "Local package cache and registry abstractions for SkillBridge",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skillbridge/skillbridge.git"
+  },
+  "homepage": "https://github.com/skillbridge/skillbridge",
+  "bugs": {
+    "url": "https://github.com/skillbridge/skillbridge/issues"
+  },
   "license": "Apache-2.0",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist",
@@ -18,8 +20,25 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@skillbridge/registry-local": "workspace:*",
     "@types/node": "^22.13.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "dependencies": {
+    "@skillbridge/adapter-sdk": "workspace:*",
+    "@skillbridge/core": "workspace:*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   }
 }

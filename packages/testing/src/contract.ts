@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Adapter, ConversionContext, InstallPlan } from '../../adapter-sdk/src/index.js';
-import { createConversionContext } from '../../adapter-sdk/src/index.js';
+import type { Adapter, ConversionContext, InstallPlan } from '@skillbridge/adapter-sdk';
+import { createConversionContext } from '@skillbridge/adapter-sdk';
 
 export interface AdapterContractOptions {
   source?: unknown;

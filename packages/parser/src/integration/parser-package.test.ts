@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { discoverResources, loadPackage } from '../index.js';
+import { discoverResources, loadPackage } from '@skillbridge/parser';
 
 function createTempDir(): string {
   return mkdtempSync(join(tmpdir(), 'sb-test-'));

@@ -1,4 +1,4 @@
-import type { InstallPlan, InstallScope } from '../../adapter-sdk/src/index.js';
+import type { InstallPlan, InstallScope } from '@skillbridge/adapter-sdk';
 import type { IntegrityManifest } from './manifest.js';
 
 export interface ResolvedInstallPlan extends InstallPlan {

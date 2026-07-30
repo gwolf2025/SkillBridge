@@ -1,5 +1,5 @@
 import { writeFileSync } from 'node:fs';
-import type { SuiteResult } from '../runner.js';
+import type { SuiteResult } from '@skillbridge/skill-test';
 
 export const JSON_DISCLAIMER = 'Mock execution does not prove real-agent behavior';
 

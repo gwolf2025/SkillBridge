@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtempSync, writeFileSync, mkdirSync, rmSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { SkillPackageCache } from '../cache.js';
+import { SkillPackageCache } from '@skillbridge/registry-local';
 
 describe('cache persistence and recovery', () => {
   let tmpDir: string;
