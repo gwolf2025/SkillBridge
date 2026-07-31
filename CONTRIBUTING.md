@@ -25,7 +25,7 @@ pnpm install
 pnpm verify
 ```
 
-Requirements: Node.js 20+, pnpm 11.17.0.
+Requirements: Node.js 24+, pnpm 11.17.0.
 
 ## Code Standards
 

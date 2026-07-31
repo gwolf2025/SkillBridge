@@ -166,7 +166,7 @@ The host development platform is Windows with PowerShell 5.1.
 ### Node.js and pnpm Setup
 
 ```powershell
-# Install Node.js 20+ (use nvm-windows or official installer)
+# Install Node.js 24+ (use nvm-windows or official installer)
 # Verify:
 node --version  # v20.x or later
 

@@ -87,7 +87,7 @@ The playground is an optional local-only preview tool. No data is sent to any se
 
 ### Prerequisites
 
-- **Node.js 20** or newer (`.nvmrc` config provided)
+- **Node.js 24** or newer (`.nvmrc` config provided)
 - **pnpm** ([install guide](https://pnpm.io/installation)) — version 11.17.0 recommended
 
 ### Quick Start
