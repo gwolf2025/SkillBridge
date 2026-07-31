@@ -5,3 +5,8 @@ coverage/
 pnpm-lock.yaml
 *.tsbuildinfo
 LICENSE
+
+# Developer/agent tooling — not part of the published SkillBridge package.
+.agents/
+.claude/
+.opencode/
