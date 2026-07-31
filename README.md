@@ -59,6 +59,19 @@ No direct pairwise converters. All conversions pass through the shared IR.
 - JSON output for all commands
 - Docker-free, cloud-free, API-free local operation
 
+### Playground
+
+A local browser interface for exploring the conversion pipeline:
+
+```bash
+pnpm playground:dev      # Start development server
+pnpm playground:build    # Production build
+pnpm playground:preview  # Production preview
+pnpm playground:test:e2e # Run Playwright tests
+```
+
+The playground is an optional local-only preview tool. No data is sent to any server. See [apps/playground/README.md](./apps/playground/README.md) for details.
+
 ### Known Limitations
 
 - `invoke()` is a placeholder in all adapters (requires external runtime)

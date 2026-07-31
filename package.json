@@ -17,6 +17,11 @@
     "depcheck": "depcruise --validate .dependency-cruiser.js packages/ adapters/ apps/ commercial/",
     "format": "prettier --write \"**/*.{ts,tsx,json,md,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md,yaml,yml}\"",
+    "playground:dev": "pnpm --filter @skillbridge/playground dev",
+    "playground:build": "pnpm --filter @skillbridge/playground build",
+    "playground:preview": "pnpm --filter @skillbridge/playground preview",
+    "playground:test": "pnpm --filter @skillbridge/playground test",
+    "playground:test:e2e": "pnpm --filter @skillbridge/playground test:e2e",
     "verify": "pnpm format:check \u0026\u0026 pnpm lint \u0026\u0026 pnpm depcheck \u0026\u0026 pnpm typecheck \u0026\u0026 pnpm test:unit \u0026\u0026 pnpm test:integration \u0026\u0026 pnpm test:roundtrip \u0026\u0026 pnpm test:conversion \u0026\u0026 pnpm build"
   },
   "devDependencies": {
